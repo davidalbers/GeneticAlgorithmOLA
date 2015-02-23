@@ -41,7 +41,26 @@ public class OLAGeneticAlgorithm {
 		return population;
 	}
 
-	public ArrayList<OLAGraph> performTournament(ArrayList<OLAGraph> parentPopulation, double pressure) {
-		for
+	public ArrayList<OLAGraph> performTournament(ArrayList<OLAGraph> parentPopulation, double k) {
+		ArrayList<OLAGraph> childPopulation = new ArrayList<OLAGraph>();
+		while(childPopulation.size() < parentPopulation.size()) {
+			int parent1 = (int)(Math.random() * parentPopulation.size());
+			int parent2 = (int)(Math.random() * parentPopulation.size());
+			OLAGraph fittestParent;
+			OLAGraph unfitParent;
+			if(parentPopulation.get(parent1).getFitness() <= parentPopulation.get(parent2).getFitness()) {
+				fittestParent = parentPopulation.get(parent1).copy();
+				unfitParent = parentPopulation.get(parent2).copy();
+			}
+			else {
+				fittestParent = parentPopulation.get(parent2).copy();
+				unfitParent = parentPopulation.get(parent1).copy();
+			}
+			if(Math.random() < k) 
+				childPopulation.add(fittestParent);
+			else
+				childPopulation.add(unfitParent);
+		}
+		return childPopulation;
 	}
 }

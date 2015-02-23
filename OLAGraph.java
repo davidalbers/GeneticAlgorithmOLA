@@ -21,7 +21,7 @@ public class OLAGraph {
 		fitness = findFitness();
 	}
 
-	private int getFitness() {
+	public int getFitness() {
 		return fitness;
 	}
 
@@ -57,5 +57,9 @@ public class OLAGraph {
 				info += ",";
 		}
 		return info;
+	}
+
+	public OLAGraph copy() {
+		return new OLAGraph(rows, cols, layout, connectionMatrix);
 	}
 }
