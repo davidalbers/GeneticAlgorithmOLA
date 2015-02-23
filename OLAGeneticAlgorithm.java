@@ -19,9 +19,19 @@ public class OLAGeneticAlgorithm {
 
 	public void run() {
 		population = generatePopulation(24, 2, 2);
+		int sum = 0;
 		for(OLAGraph graph : population) {
-			System.out.println(graph.toString() + "\nFitness: " + graph.getFitness());
+			// System.out.println(graph.toString() + "\nFitness: " + graph.getFitness());
+			sum += graph.getFitness();
 		}
+		System.out.println("Avg fitness of parents: " + ( (double)sum / population.size()));
+		sum = 0;
+		ArrayList<OLAGraph> children = performTournament(population, .75);
+		for(OLAGraph graph : children) {
+			// System.out.println(graph.toString() + "\nFitness: " + graph.getFitness());
+			sum += graph.getFitness();
+		}
+		System.out.println("Avg fitness of children: " + ( (double)sum / population.size()));
 	}
 
 	public ArrayList<OLAGraph> generatePopulation(int popSize, int rows, int cols) {
@@ -42,8 +52,10 @@ public class OLAGeneticAlgorithm {
 	}
 
 	public ArrayList<OLAGraph> performTournament(ArrayList<OLAGraph> parentPopulation, double k) {
-		ArrayList<OLAGraph> childPopulation = new ArrayList<OLAGraph>();
-		while(childPopulation.size() < parentPopulation.size()) {
+		ArrayList<OLAGraph> selectedPopulation = new ArrayList<OLAGraph>();
+		int fitCount = 0;
+		int unfitCount = 0;
+		while(selectedPopulation.size() < parentPopulation.size()) {
 			int parent1 = (int)(Math.random() * parentPopulation.size());
 			int parent2 = (int)(Math.random() * parentPopulation.size());
 			OLAGraph fittestParent;
@@ -56,11 +68,23 @@ public class OLAGeneticAlgorithm {
 				fittestParent = parentPopulation.get(parent2).copy();
 				unfitParent = parentPopulation.get(parent1).copy();
 			}
-			if(Math.random() < k) 
-				childPopulation.add(fittestParent);
-			else
-				childPopulation.add(unfitParent);
+			// System.out.println("\niteration" + selectedPopulation.size() + "\nfittestParent:\n" + fittestParent.toString() + "\nLeast Fit:\n" + unfitParent.toString());
+			if(Math.random() < k) {
+				selectedPopulation.add(fittestParent);
+				fitCount++;
+			}
+			else {
+				selectedPopulation.add(unfitParent);
+				unfitCount++;
+			}
 		}
-		return childPopulation;
+		// System.out.println("Added " + fitCount + " fit parents and " + unfitCount + " unfit parents");
+		return selectedPopulation;
+	}
+
+	public ArrayList<OLAGraph> order1Crossover(OLAGraph parent1, OLAGraph parent2) {
+		int crossoverPoint1 = (int)(Math.random * (parent1.getLength() - 1));
+		int crossoverPoint2 = (int)(Math.random * (parent1.getLength() - crossoverPoint1));
+		
 	}
 }

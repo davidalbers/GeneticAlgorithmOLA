@@ -25,6 +25,14 @@ public class OLAGraph {
 		return fitness;
 	}
 
+	public int getLength() {
+		return rows * col;
+	}
+
+	public int[] getLayout() {
+		return layout
+	}
+
 	private int findFitness() {
 		int fitness = 0;
 		int offset = 0;
@@ -48,7 +56,7 @@ public class OLAGraph {
 
 
 	public String toString() {
-		String info = "Rows: " + rows + "Columns: " + cols + " layout: ";
+		String info = "Fitness: " + fitness + " Rows: " + rows + "Columns: " + cols + " Layout: ";
 		for(int i = 0; i < layout.length; i++) {
 			if(i % cols == 0)
 				info += "\n";
