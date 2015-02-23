@@ -26,11 +26,23 @@ public class OLAGraph {
 	}
 
 	public int getLength() {
-		return rows * col;
+		return rows * cols;
 	}
 
 	public int[] getLayout() {
-		return layout
+		return layout;
+	}
+
+	public int getRows() {
+		return rows;
+	}
+
+	public int getColumns() {
+		return cols;
+	}
+
+	public int[][] getConnectionMatrix() {
+		return connectionMatrix;
 	}
 
 	private int findFitness() {
@@ -70,4 +82,19 @@ public class OLAGraph {
 	public OLAGraph copy() {
 		return new OLAGraph(rows, cols, layout, connectionMatrix);
 	}
+
+	public static int[][] generateConnectionMatrix(int rows, int cols, int minConnections, int maxConnections) {
+		int length = rows * cols;
+		int[][] generatedMatrix = new int[length][length];
+
+		for (int vertex = 0; vertex < length; vertex++) {
+			for (int vertexToConnect = vertex + 1; vertexToConnect < length; vertexToConnect++) {
+				int connections = (int)(Math.random() * (maxConnections - minConnections + 1)) + minConnections;
+				generatedMatrix[vertex][vertexToConnect] = connections;
+				generatedMatrix[vertexToConnect][vertex] = connections;
+			}
+		}
+		return generatedMatrix;
+	}
+
 }
