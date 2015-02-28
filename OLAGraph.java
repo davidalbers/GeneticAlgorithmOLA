@@ -1,16 +1,15 @@
-public class OLAGraph {
+public class OLAGraph implements Comparable<OLAGraph> {
 	private int rows;
 	private int cols;
 	private int[] layout;
 	private int[][] connectionMatrix;
-	private int fitness;
+	private int fitness = -1;
 
 	public OLAGraph(int rows, int cols) {
 		this.rows = rows;
 		this.cols = cols;
 		layout = new int[rows * cols];
 		connectionMatrix = new int[rows * cols][rows * cols];
-		fitness = findFitness();
 	}
 
 	public OLAGraph(int rows, int cols, int[] layout, int[][] connectionMatrix) {
@@ -18,10 +17,11 @@ public class OLAGraph {
 		this.cols = cols;
 		this.layout = layout;
 		this.connectionMatrix = connectionMatrix;
-		fitness = findFitness();
 	}
 
 	public int getFitness() {
+		if(fitness == -1)
+			fitness = findFitness2();
 		return fitness;
 	}
 
@@ -58,17 +58,31 @@ public class OLAGraph {
 		return fitness;
 	}
 
+	private int findFitness2() {
+		int fitness = 0;
+		for (int pos1 = 0; pos1 < layout.length; pos1++) {
+			for(int pos2 = pos1; pos2 < layout.length; pos2++) {
+				int vertex = layout[pos1];
+				int vertexToConnect = layout[pos2];
+				int connections = connectionMatrix[vertex][vertexToConnect];
+				int distance = computeDistance(pos1, pos2);
+				fitness += connections * distance;
+			}
+		}
+		return fitness;
+	}
+
 	private int computeDistance(int index1, int index2) {
 		int index1X = index1 % cols;
-		int index1Y = index1 / rows;
+		int index1Y = index1 / cols;
 		int index2X = index2 % cols;
-		int index2Y = index2 / rows;
+		int index2Y = index2 / cols;
 		return Math.abs(index2X - index1X) + Math.abs(index2Y - index1Y);
 	}
 
 
 	public String toString() {
-		String info = "Fitness: " + fitness + " Rows: " + rows + "Columns: " + cols + " Layout: ";
+		String info = "Fitness: " + getFitness() + " Rows: " + rows + "Columns: " + cols + " Layout: ";
 		for(int i = 0; i < layout.length; i++) {
 			if(i % cols == 0)
 				info += "\n";
@@ -95,6 +109,22 @@ public class OLAGraph {
 			}
 		}
 		return generatedMatrix;
+	}
+
+	public int[] generateReverseLookup() {
+		int[] reverse = new int[layout.length];
+		for(int i = 0; i < reverse.length; i++) {
+			reverse[layout[i]] = i;
+		}
+		return reverse;
+	}
+
+	public int compareTo(OLAGraph toCompare) {
+		if(getFitness() < toCompare.getFitness()) 
+			return -1;
+		else if(getFitness() > toCompare.getFitness()) 
+			return 1;
+		else return 0;
 	}
 
 }
