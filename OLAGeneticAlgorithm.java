@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.Collections;
 public class OLAGeneticAlgorithm {
-	// static int[] layout = {3,2,0,1};
+	// static int[] layout = {3,2,0,1};test
 	static int[][] contrivedMatrix = 
 			{
 	  //{0,  1,   2,  3,   4   ,5,   6,  7,   8, 9,0,1,2,3,4,5,6,7}
