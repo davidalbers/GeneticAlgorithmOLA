@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.io.PrintWriter;
 public class OLAGeneticAlgorithm {
 	// static int[] layout = {3,2,0,1};test
 	static int[][] contrivedMatrix = 
@@ -34,9 +35,9 @@ public class OLAGeneticAlgorithm {
 	}
 
 	public void run() {
-		int rows = 6;
-		int cols = 3;
-		int[][] testConnection = OLAGraph.generateConnectionMatrix(rows, cols, 1, 10);
+		int rows = 10;
+		int cols = 9;
+		int[][] testConnection = OLAGraph.generateConnectionMatrix(rows, cols, 0, 50);
 		// System.out.println("Generated connection matrix");
 		// for(int i = 0; i < testConnection.length; i++) {
 		// 	for (int j = 0; j < testConnection[i].length; j++) {
@@ -45,7 +46,7 @@ public class OLAGeneticAlgorithm {
 		// 	System.out.println("");
 		// }
 
-		ArrayList<OLAGraph> testPopulation = generatePopulation(10001, rows, cols, testConnection);
+		ArrayList<OLAGraph> testPopulation = generatePopulation(1001, rows, cols, testConnection);
 		ArrayList<OLAGraph> testPopulation2 = new ArrayList<OLAGraph>();
 		ArrayList<OLAGraph> testPopulation3 = new ArrayList<OLAGraph>();
 		ArrayList<OLAGraph> testPopulation4 = new ArrayList<OLAGraph>();
@@ -56,10 +57,10 @@ public class OLAGeneticAlgorithm {
 			testPopulation4.add(graph.copy());
 		}
 
-		(new GAThread(testPopulation, 100000, .05, 0, 0)).start();
-		(new GAThread(testPopulation2, 100000, .05, 0, 1)).start();
-		(new GAThread(testPopulation3, 100000, .05, 1, 0)).start();
-		(new GAThread(testPopulation4, 100000, .05, 1, 1)).start();
+		// (new GAThread(testPopulation, 100000, .05, 0, 0)).start();
+		(new GAThread(testPopulation2, 1000, .05, 0, 1)).start();
+		// (new GAThread(testPopulation3, 100000, .05, 1, 0)).start();
+		// (new GAThread(testPopulation4, 100000, .05, 1, 1)).start();
 	}
 
 	class GAThread extends Thread {
@@ -87,6 +88,7 @@ public class OLAGeneticAlgorithm {
 		int minFitness = 0;
 		long start = System.currentTimeMillis();
 		String tag = "";
+		ArrayList<Integer> fitnesses = new ArrayList<Integer>();
 		if(selectionAlg == 0) 
 			tag += "tournament,";
 		else
@@ -95,12 +97,12 @@ public class OLAGeneticAlgorithm {
 			tag += "order1";
 		else
 			tag += "cycle";
-		System.out.println("Starting GA " + tag);
-		while(count < stop && minFitness != 48000) {
+		while(count < stop) {
 			OLAGraph minParent = population.remove(populationMinIndex(population));
 			int newFitness = minParent.getFitness();
 			if(newFitness < minFitness || count == 0) {
 				// System.out.println("Gen " + count + " min:\n" + minParent.toString());
+				fitnesses.add(newFitness);
 				minFitness = newFitness;
 			}
 			ArrayList<OLAGraph> selected;
@@ -114,21 +116,33 @@ public class OLAGeneticAlgorithm {
 				crossed = order1Crossover(selected);
 			else
 				crossed = cycle(selected);
-
+			if(count%1000 == 0)
+				mutation = .95;
 			for(int i = 0; i < (int)(crossed.size() * mutation); i++) {
 				OLAGraph mutated = mutate(crossed.remove((int)(Math.random() * crossed.size())));
 				crossed.add(mutated);
 			}
-
+			mutation = .05;
 			population = crossed;
 
-			if(count%100 == 0)
-				System.out.println(tag + " gen " + count + "min " + minFitness + " took " + (System.currentTimeMillis() - start));
+			// if(count%250 == 0)
+			// 	System.out.println(tag + " gen " + count + "min " + minFitness + " took " + (System.currentTimeMillis() - start));
 			
 			population.add(minParent);
 			count++;
 		}
-		System.out.println(tag + " finished in " + (System.currentTimeMillis() - start) + "ms and " + count + "generations");
+		try {
+		PrintWriter writer = new PrintWriter(tag+System.currentTimeMillis()+".txt", "UTF-8");
+		writer.println("finished in " + (System.currentTimeMillis() - start) + "ms and " + count + "generations");
+		writer.println("resulting layout " + population.get(populationMinIndex(population)).toString());
+		writer.println();
+		for(int i : fitnesses)
+			writer.print(i + ",");
+		writer.close();
+		}
+		catch(Exception ex) {
+			System.out.println("error writing output.");
+		}
 	}
 
 	public ArrayList<OLAGraph> generatePopulation(int popSize, int rows, int cols, int[][] connMatrix) {
@@ -346,6 +360,13 @@ public class OLAGeneticAlgorithm {
 		int swapIndex1 = (int)(Math.random() * layout.length);
 		int swapIndex2 = (int)(Math.random() * layout.length);
 		int swapTemp = layout[swapIndex1];
+
+		layout[swapIndex1] = layout[swapIndex2];
+		layout[swapIndex2] = swapTemp;
+
+		swapIndex1 = (int)(Math.random() * layout.length);
+		swapIndex2 = (int)(Math.random() * layout.length);
+		swapTemp = layout[swapIndex1];
 
 		layout[swapIndex1] = layout[swapIndex2];
 		layout[swapIndex2] = swapTemp;

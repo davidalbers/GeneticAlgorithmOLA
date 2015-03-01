@@ -108,6 +108,12 @@ public class OLAGraph implements Comparable<OLAGraph> {
 				generatedMatrix[vertexToConnect][vertex] = connections;
 			}
 		}
+		for(int i = 0; i < (rows * cols) / 10; i++) {
+			generatedMatrix[(int)(Math.random() * length)][(int)(Math.random() * length)] *= 10;
+		}
+		for(int i = 0; i < (rows * cols) / 10; i++) {
+			generatedMatrix[(int)(Math.random() * length)][(int)(Math.random() * length)] = 0;
+		}
 		return generatedMatrix;
 	}
 
