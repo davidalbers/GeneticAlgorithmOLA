@@ -35,9 +35,9 @@ public class OLAGeneticAlgorithm {
 	}
 
 	public void run() {
-		int rows = 10;
-		int cols = 9;
-		int[][] testConnection = OLAGraph.generateConnectionMatrix(rows, cols, 0, 50);
+		int rows = 6;
+		int cols = 3;
+		int[][] testConnection = OLAGraph.generateConnectionMatrix(rows, cols, 0, 9);
 		// System.out.println("Generated connection matrix");
 		// for(int i = 0; i < testConnection.length; i++) {
 		// 	for (int j = 0; j < testConnection[i].length; j++) {
@@ -45,21 +45,26 @@ public class OLAGeneticAlgorithm {
 		// 	}
 		// 	System.out.println("");
 		// }
+		int[] optimalLayout = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
+		OLAGraphDrawer drawer = new OLAGraphDrawer(optimalLayout, contrivedMatrix, rows, cols);
 
-		ArrayList<OLAGraph> testPopulation = generatePopulation(1001, rows, cols, testConnection);
+		
+		/*
+		ArrayList<OLAGraph> testPopulation = generatePopulation(501, rows, cols, contrivedMatrix);
 		ArrayList<OLAGraph> testPopulation2 = new ArrayList<OLAGraph>();
 		ArrayList<OLAGraph> testPopulation3 = new ArrayList<OLAGraph>();
 		ArrayList<OLAGraph> testPopulation4 = new ArrayList<OLAGraph>();
-
+				
+		
 		for(OLAGraph graph : testPopulation) {
 			testPopulation2.add(graph.copy());
 			testPopulation3.add(graph.copy());
 			testPopulation4.add(graph.copy());
 		}
-
-		// (new GAThread(testPopulation, 100000, .05, 0, 0)).start();
-		(new GAThread(testPopulation2, 1000, .05, 0, 1)).start();
-		// (new GAThread(testPopulation3, 100000, .05, 1, 0)).start();
+		*/
+		//(new GAThread(testPopulation, 5000, .05, 0, 0)).start();
+		//(new GAThread(testPopulation2, 5000, .05, 0, 1)).start();
+		//(new GAThread(testPopulation3, 5000, .05, 0, 2)).start();
 		// (new GAThread(testPopulation4, 100000, .05, 1, 1)).start();
 	}
 
@@ -89,21 +94,27 @@ public class OLAGeneticAlgorithm {
 		long start = System.currentTimeMillis();
 		String tag = "";
 		ArrayList<Integer> fitnesses = new ArrayList<Integer>();
+		int[] blankLayout = new int[population.get(0).getLayout().length];
+		OLAGraphDrawer drawer = new OLAGraphDrawer(blankLayout, contrivedMatrix, population.get(0).getRows(), population.get(0).getColumns());
 		if(selectionAlg == 0) 
 			tag += "tournament,";
 		else
 			tag += "rank,";
 		if(crossAlg == 0)
 			tag += "order1";
-		else
+		else if(crossAlg == 1)
 			tag += "cycle";
-		while(count < stop) {
+		else 
+			tag += "2d";
+		while(count != stop) {
 			OLAGraph minParent = population.remove(populationMinIndex(population));
 			int newFitness = minParent.getFitness();
 			if(newFitness < minFitness || count == 0) {
-				// System.out.println("Gen " + count + " min:\n" + minParent.toString());
+				System.out.println(tag + " Gen " + count + "min " + minFitness);// " min:" + minParent.toString());
+				drawer.setLayout(minParent.getLayout());
 				fitnesses.add(newFitness);
 				minFitness = newFitness;
+				minGeneration = count;
 			}
 			ArrayList<OLAGraph> selected;
 			if(selectionAlg == 0)
@@ -114,26 +125,26 @@ public class OLAGeneticAlgorithm {
 			ArrayList<OLAGraph> crossed;
 			if(crossAlg == 0)
 				crossed = order1Crossover(selected);
-			else
+			else if(crossAlg == 1)
 				crossed = cycle(selected);
-			if(count%1000 == 0)
-				mutation = .95;
+			else
+				crossed = TwoDPointCrossover(selected, selected.get(0).getRows(), selected.get(0).getColumns());
 			for(int i = 0; i < (int)(crossed.size() * mutation); i++) {
-				OLAGraph mutated = mutate(crossed.remove((int)(Math.random() * crossed.size())));
-				crossed.add(mutated);
+				crossed.add(mutate(crossed.remove((int)(Math.random() * crossed.size()))));
 			}
 			mutation = .05;
 			population = crossed;
 
-			// if(count%250 == 0)
-			// 	System.out.println(tag + " gen " + count + "min " + minFitness + " took " + (System.currentTimeMillis() - start));
-			
+			 //if(count%25 == 0)
+			 //	System.out.println(tag + " gen " + count);// + "min " + minFitness + " took " + (System.currentTimeMillis() - start));
 			population.add(minParent);
 			count++;
+
 		}
+		
 		try {
 		PrintWriter writer = new PrintWriter(tag+System.currentTimeMillis()+".txt", "UTF-8");
-		writer.println("finished in " + (System.currentTimeMillis() - start) + "ms and " + count + "generations");
+		writer.println("finished in " + (System.currentTimeMillis() - start) + "ms and " + count + " generations. Minimum generation " + minGeneration);
 		writer.println("resulting layout " + population.get(populationMinIndex(population)).toString());
 		writer.println();
 		for(int i : fitnesses)
@@ -179,7 +190,8 @@ public class OLAGeneticAlgorithm {
 				fittestParent = parentPopulation.get(parent2);
 				unfitParent = parentPopulation.get(parent1);
 			}
-			// System.out.println("\niteration" + selectedPopulation.size() + "\nfittestParent:\n" + fittestParent.toString() + "\nLeast Fit:\n" + unfitParent.toString());
+			// System.out.println("\niteration" + selectedPopulation.size() + "\nfittestParent:\n" + fittestParent.toString() + 
+			//"\nLeast Fit:\n" + unfitParent.toString());
 			if(Math.random() < k) {
 				selectedPopulation.add(fittestParent.copy());
 				fitCount++;
@@ -352,6 +364,185 @@ public class OLAGeneticAlgorithm {
 			children.add(new OLAGraph(parent1.getRows(), parent1.getColumns(), child2layout, parent1.getConnectionMatrix()));
 		}
 		return children;
+	}
+	
+	//Slow, inefficient :( 
+	public ArrayList<OLAGraph> TwoDPointCrossover(ArrayList<OLAGraph> parents, int rows, int cols) {
+		int parentIndex = 0;
+		ArrayList<OLAGraph> children = new ArrayList<OLAGraph>();
+		while(children.size() < parents.size()) {
+			int xCrossoverPoint1 = 0;//(int)(Math.random() * (cols - 2));
+			int xCrossoverPoint2 = (int)(Math.random() * (cols - xCrossoverPoint1)) + xCrossoverPoint1;
+			int yCrossoverPoint1 = 0;//(int)(Math.random() * (rows - 2));
+			int yCrossoverPoint2 = 0;//(int)(Math.random() * (rows - yCrossoverPoint1)) + yCrossoverPoint1;
+			int[][] connectionMatrix = parents.get(0).getConnectionMatrix();
+			int[] parent1layout = parents.get(parentIndex).getLayout();
+			parentIndex++;
+			int[] parent2layout = parents.get(parentIndex).getLayout();
+			parentIndex++;
+			int[] child1layout = new int[parent1layout.length];
+			int[] child2layout = new int[parent1layout.length];
+			//set all child data to -1 to keep track of which indices have been set
+			for(int i = 0; i < child1layout.length; i++) {
+				child1layout[i] = -1;
+				child2layout[i] = -1;
+			}
+			ArrayList<Integer> child1Duplicates = new ArrayList<Integer>();
+			ArrayList<Integer> child2Duplicates = new ArrayList<Integer>();
+
+			// 1,2,3
+			// 4,5,6
+			// 7,8,9
+			for(int row = 0; row < rows; row++) {
+				for(int col = 0; col < cols; col++) {
+					if(row < yCrossoverPoint1) {
+						if(col < xCrossoverPoint1) { //1
+							if(findVertex(child1layout, parent1layout[row * cols + col], row * cols + col))
+								child1Duplicates.add(parent1layout[row * cols + col]);
+							else
+								child1layout[row * cols + col] = parent1layout[row * cols + col];
+							if(findVertex(child2layout, parent2layout[row * cols + col], row * cols + col))
+								child2Duplicates.add(parent2layout[row * cols + col]);
+							else
+								child2layout[row * cols + col] = parent2layout[row * cols + col];
+						}
+						else if(col <= xCrossoverPoint2) { //2
+							if(findVertex(child1layout, parent2layout[row * cols + col], row * cols + col))
+								child1Duplicates.add(parent2layout[row * cols + col]);
+							else
+								child1layout[row * cols + col] = parent2layout[row * cols + col];
+							if(findVertex(child2layout, parent1layout[row * cols + col], row * cols + col))
+								child2Duplicates.add(parent1layout[row * cols + col]);
+							else
+								child2layout[row * cols + col] = parent1layout[row * cols + col];
+						}
+						else { //3
+							if(findVertex(child1layout, parent1layout[row * cols + col], row * cols + col))
+								child1Duplicates.add(parent1layout[row * cols + col]);
+							else
+								child1layout[row * cols + col] = parent1layout[row * cols + col];
+							if(findVertex(child2layout, parent2layout[row * cols + col], row * cols + col))
+								child2Duplicates.add(parent2layout[row * cols + col]);
+							else
+								child2layout[row * cols + col] = parent2layout[row * cols + col];
+						}
+					}
+					else if(row <= yCrossoverPoint2) {
+						if(col < xCrossoverPoint1) { //4
+							if(findVertex(child1layout, parent2layout[row * cols + col], row * cols + col))
+								child1Duplicates.add(parent2layout[row * cols + col]);
+							else
+								child1layout[row * cols + col] = parent2layout[row * cols + col];
+							if(findVertex(child2layout, parent1layout[row * cols + col], row * cols + col))
+								child2Duplicates.add(parent1layout[row * cols + col]);
+							else
+								child2layout[row * cols + col] = parent1layout[row * cols + col];
+						}
+						else if(col <= xCrossoverPoint2) { //5
+							if(findVertex(child1layout, parent1layout[row * cols + col], row * cols + col))
+								child1Duplicates.add(parent1layout[row * cols + col]);
+							else
+								child1layout[row * cols + col] = parent1layout[row * cols + col];
+							if(findVertex(child2layout, parent2layout[row * cols + col], row * cols + col))
+								child2Duplicates.add(parent2layout[row * cols + col]);
+							else
+								child2layout[row * cols + col] = parent2layout[row * cols + col];
+						}
+						else { //6
+							if(findVertex(child1layout, parent2layout[row * cols + col], row * cols + col))
+								child1Duplicates.add(parent2layout[row * cols + col]);
+							else
+								child1layout[row * cols + col] = parent2layout[row * cols + col];
+							if(findVertex(child2layout, parent1layout[row * cols + col], row * cols + col))
+								child2Duplicates.add(parent1layout[row * cols + col]);
+							else
+								child2layout[row * cols + col] = parent1layout[row * cols + col];
+						}
+					}
+					else {
+						if(col < xCrossoverPoint1) { //7
+							if(findVertex(child1layout, parent1layout[row * cols + col], row * cols + col))
+								child1Duplicates.add(parent1layout[row * cols + col]);
+							else
+								child1layout[row * cols + col] = parent1layout[row * cols + col];
+							if(findVertex(child2layout, parent2layout[row * cols + col], row * cols + col))
+								child2Duplicates.add(parent2layout[row * cols + col]);
+							else
+								child2layout[row * cols + col] = parent2layout[row * cols + col];
+						}
+						else if(col <= xCrossoverPoint2) { //8
+							if(findVertex(child1layout, parent2layout[row * cols + col], row * cols + col))
+								child1Duplicates.add(parent2layout[row * cols + col]);
+							else
+								child1layout[row * cols + col] = parent2layout[row * cols + col];
+							if(findVertex(child2layout, parent1layout[row * cols + col], row * cols + col))
+								child2Duplicates.add(parent1layout[row * cols + col]);
+							else
+								child2layout[row * cols + col] = parent1layout[row * cols + col];
+						}
+						else { //9
+							if(findVertex(child1layout, parent1layout[row * cols + col], row * cols + col))
+								child1Duplicates.add(parent1layout[row * cols + col]);
+							else
+								child1layout[row * cols + col] = parent1layout[row * cols + col];
+							if(findVertex(child2layout, parent2layout[row * cols + col], row * cols + col))
+								child2Duplicates.add(parent2layout[row * cols + col]);
+							else
+								child2layout[row * cols + col] = parent2layout[row * cols + col];
+						}
+					}	
+				}
+			}
+			
+			for(int i = 0; i < parent1layout.length; i++) {
+				if(child1layout[i] == -1)
+					child1layout[i] = child2Duplicates.remove(0);
+				if(child2layout[i] == -1)
+					child2layout[i] = child1Duplicates.remove(0);
+			}
+			/*
+			System.out.println("Crossover points " + xCrossoverPoint1 + "," + xCrossoverPoint2 + "," + yCrossoverPoint1 + "," + yCrossoverPoint2);
+			System.out.println("\nParent1");
+			for(int i = 0; i < parent1layout.length; i++) {
+				if(i%cols == 0)
+					System.out.println();
+				System.out.print(parent1layout[i] + ",");
+				
+			}
+			System.out.println("\nParent2");
+			for(int i = 0; i < parent1layout.length; i++) {
+				if(i%cols == 0)
+					System.out.println();
+				System.out.print(parent2layout[i] + ",");
+				
+			}
+			System.out.println("\nChild1");
+			for(int i = 0; i < parent1layout.length; i++) {
+				if(i%cols == 0)
+					System.out.println();
+				System.out.print(child1layout[i] + ",");
+				
+			}
+			System.out.println("\nChild2");
+			for(int i = 0; i < parent1layout.length; i++) {
+				if(i%cols == 0)
+					System.out.println();
+				System.out.print(child2layout[i] + ",");
+				
+			}
+			*/
+			children.add(new OLAGraph(rows, cols, child1layout, connectionMatrix));
+			children.add(new OLAGraph(rows, cols, child2layout, connectionMatrix));
+		}
+		return children;
+	}
+	
+	public boolean findVertex(int[] layout, int vertex, int stop) {
+		for(int i = 0; i <= stop; i++) {
+			if(layout[i] == vertex)
+				return true;
+		}
+		return false;
 	}
 
 	public OLAGraph mutate(OLAGraph graph) {

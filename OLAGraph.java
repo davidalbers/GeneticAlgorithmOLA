@@ -79,7 +79,20 @@ public class OLAGraph implements Comparable<OLAGraph> {
 		int index2Y = index2 / cols;
 		return Math.abs(index2X - index1X) + Math.abs(index2Y - index1Y);
 	}
-
+	
+	public static int[] computeDirectionVector(int index1, int index2, int cols) {
+		int index1X = index1 % cols;
+		int index1Y = index1 / cols;
+		int index2X = index2 % cols;
+		int index2Y = index2 / cols;
+		return new int[]{(index2X - index1X), (index2Y - index1Y)};
+	}
+	
+	 public static int[] indexToCoordinates(int index, int cols) {
+	 	int indexX = index % cols;
+		int indexY = index / cols;
+		return new int[]{indexX, indexY};
+	 }
 
 	public String toString() {
 		String info = "Fitness: " + getFitness() + " Rows: " + rows + "Columns: " + cols + " Layout: ";
