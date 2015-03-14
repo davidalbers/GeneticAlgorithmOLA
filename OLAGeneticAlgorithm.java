@@ -45,12 +45,12 @@ public class OLAGeneticAlgorithm {
 		// 	}
 		// 	System.out.println("");
 		// }
-		int[] optimalLayout = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
-		OLAGraphDrawer drawer = new OLAGraphDrawer(optimalLayout, contrivedMatrix, rows, cols);
+		//int[] optimalLayout = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
+		//OLAGraphDrawer drawer = new OLAGraphDrawer(optimalLayout, contrivedMatrix, rows, cols);
 
 		
-		/*
-		ArrayList<OLAGraph> testPopulation = generatePopulation(501, rows, cols, contrivedMatrix);
+		
+		ArrayList<OLAGraph> testPopulation = generatePopulation(501, rows, cols, testConnection);
 		ArrayList<OLAGraph> testPopulation2 = new ArrayList<OLAGraph>();
 		ArrayList<OLAGraph> testPopulation3 = new ArrayList<OLAGraph>();
 		ArrayList<OLAGraph> testPopulation4 = new ArrayList<OLAGraph>();
@@ -61,11 +61,11 @@ public class OLAGeneticAlgorithm {
 			testPopulation3.add(graph.copy());
 			testPopulation4.add(graph.copy());
 		}
-		*/
-		//(new GAThread(testPopulation, 5000, .05, 0, 0)).start();
-		//(new GAThread(testPopulation2, 5000, .05, 0, 1)).start();
-		//(new GAThread(testPopulation3, 5000, .05, 0, 2)).start();
-		// (new GAThread(testPopulation4, 100000, .05, 1, 1)).start();
+		
+		(new GAThread(testPopulation, 5000, .05, 0, 0, .70)).start();
+		(new GAThread(testPopulation2, 5000, .05, 0, 0, .73)).start();
+		(new GAThread(testPopulation3, 5000, .05, 0, 0, .76)).start();
+		(new GAThread(testPopulation4, 5000, .05, 0, 0, .79)).start();
 	}
 
 	class GAThread extends Thread {
@@ -74,20 +74,22 @@ public class OLAGeneticAlgorithm {
          double mutation;
          int selectionAlg;
          int crossAlg;
-         GAThread(ArrayList<OLAGraph> population, int stop, double mutation, int selectionAlg, int crossAlg) {
+         double k;
+         GAThread(ArrayList<OLAGraph> population, int stop, double mutation, int selectionAlg, int crossAlg, double k) {
              this.population = population;
              this.stop = stop;
              this.mutation = mutation;
              this.selectionAlg = selectionAlg;
              this.crossAlg = crossAlg;
+             this.k = k;
          }
 
          public void run() {
-         	runGA(population, stop, mutation, selectionAlg, crossAlg);
+         	runGA(population, stop, mutation, selectionAlg, crossAlg, k);
          }
      }
 
-	public void runGA(ArrayList<OLAGraph> population, int stop, double mutation, int selectionAlg, int crossAlg) {
+	public void runGA(ArrayList<OLAGraph> population, int stop, double mutation, int selectionAlg, int crossAlg, double k) {
 		int count = 0;
 		int minGeneration = 0;
 		int minFitness = 0;
@@ -95,7 +97,7 @@ public class OLAGeneticAlgorithm {
 		String tag = "";
 		ArrayList<Integer> fitnesses = new ArrayList<Integer>();
 		int[] blankLayout = new int[population.get(0).getLayout().length];
-		OLAGraphDrawer drawer = new OLAGraphDrawer(blankLayout, contrivedMatrix, population.get(0).getRows(), population.get(0).getColumns());
+		//OLAGraphDrawer drawer = new OLAGraphDrawer(blankLayout, contrivedMatrix, population.get(0).getRows(), population.get(0).getColumns());
 		if(selectionAlg == 0) 
 			tag += "tournament,";
 		else
@@ -106,19 +108,21 @@ public class OLAGeneticAlgorithm {
 			tag += "cycle";
 		else 
 			tag += "2d";
+		tag += " mut " + mutation;
+		tag += " k " + k;
 		while(count != stop) {
 			OLAGraph minParent = population.remove(populationMinIndex(population));
 			int newFitness = minParent.getFitness();
 			if(newFitness < minFitness || count == 0) {
 				System.out.println(tag + " Gen " + count + "min " + minFitness);// " min:" + minParent.toString());
-				drawer.setLayout(minParent.getLayout());
+				//drawer.setLayout(minParent.getLayout());
 				fitnesses.add(newFitness);
 				minFitness = newFitness;
 				minGeneration = count;
 			}
 			ArrayList<OLAGraph> selected;
 			if(selectionAlg == 0)
-				selected = performTournament(population, .75);
+				selected = performTournament(population, k);
 			else
 				selected = performRank(population);
 
@@ -139,7 +143,12 @@ public class OLAGeneticAlgorithm {
 			 //	System.out.println(tag + " gen " + count);// + "min " + minFitness + " took " + (System.currentTimeMillis() - start));
 			population.add(minParent);
 			count++;
-
+			if(count%10==0) {
+				try{
+				Thread.sleep(100);
+			}
+			catch(Exception ex){}
+			}
 		}
 		
 		try {

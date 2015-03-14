@@ -1,0 +1,10 @@
+finished in 230636ms and 5000 generations. Minimum generation 3542
+resulting layout Fitness: 1767 Rows: 6Columns: 3 Layout: 
+17,0,2,
+12,3,11,
+10,5,15,
+14,1,4,
+8,16,13,
+7,9,6,
+
+1840,1811,1799,1793,1777,1767,
