@@ -1,0 +1,13 @@
+finished in 3864ms and 10000 generations. Minimum generation 8304
+resulting layout Fitness: 1883 Rows: 6Columns: 3 Layout: 
+5,6,11,
+9,8,7,
+4,15,14,
+0,12,1,
+16,2,3,
+13,10,17,
+
+fitnesses
+1953,1943,1916,1911,1907,1902,1899,1898,1883,
+fitnessesOccurances
+0,47,55,203,2189,2485,2718,7994,8304,

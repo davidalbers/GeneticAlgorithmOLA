@@ -50,13 +50,13 @@ public class SimulatedAnnealing {
 		int rows = 6;
 		int cols = 3;
 		int[][] connectionMatrix = OLAGraph.generateConnectionMatrix(rows, cols, 0, 50);
-		OLAGraph initialSolution = generateSolution(rows, cols, contrivedMatrix);
+		OLAGraph initialSolution = generateSolution(rows, cols, connectionMatrix);
 		OLAGraph solutionN = initialSolution;
-		double initialTemperature = 20.0;
+		double initialTemperature = 100.0;
 		double temperature = initialTemperature;
 		double iterations = 20.0;
-		double alpha = .98;
-		double beta = 1.05;
+		double alpha = .99999;
+		double beta = 1.00001;
 		int count = 0;
 		int leastFitParentCount = 0;
 		int fitParentCount = 0;

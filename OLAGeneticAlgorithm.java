@@ -54,18 +54,20 @@ public class OLAGeneticAlgorithm {
 		ArrayList<OLAGraph> testPopulation2 = new ArrayList<OLAGraph>();
 		ArrayList<OLAGraph> testPopulation3 = new ArrayList<OLAGraph>();
 		ArrayList<OLAGraph> testPopulation4 = new ArrayList<OLAGraph>();
-				
+		ArrayList<OLAGraph> testPopulation5 = new ArrayList<OLAGraph>();	
 		
 		for(OLAGraph graph : testPopulation) {
 			testPopulation2.add(graph.copy());
 			testPopulation3.add(graph.copy());
 			testPopulation4.add(graph.copy());
+			testPopulation5.add(graph.copy());
 		}
 		
-		(new GAThread(testPopulation, 5000, .05, 0, 0, .70)).start();
-		(new GAThread(testPopulation2, 5000, .05, 0, 0, .73)).start();
-		(new GAThread(testPopulation3, 5000, .05, 0, 0, .76)).start();
-		(new GAThread(testPopulation4, 5000, .05, 0, 0, .79)).start();
+		(new GAThread(testPopulation, -1, .05, 0, 0, .75, "t1")).start();
+		(new GAThread(testPopulation2, -1, .05, 0, 0, .75, "t2")).start();
+		(new GAThread(testPopulation3, -1, .05, 0, 0, .75, "t3")).start();
+		(new GAThread(testPopulation4, -1, .05, 0, 0, .75, "t4")).start();
+		(new GAThread(testPopulation5, -1, .05, 0, 0, .75, "t5")).start();
 	}
 
 	class GAThread extends Thread {
@@ -75,41 +77,45 @@ public class OLAGeneticAlgorithm {
          int selectionAlg;
          int crossAlg;
          double k;
-         GAThread(ArrayList<OLAGraph> population, int stop, double mutation, int selectionAlg, int crossAlg, double k) {
+	String name;
+         GAThread(ArrayList<OLAGraph> population, int stop, double mutation, int selectionAlg, int crossAlg, double k, String name) {
              this.population = population;
              this.stop = stop;
              this.mutation = mutation;
              this.selectionAlg = selectionAlg;
              this.crossAlg = crossAlg;
              this.k = k;
+		this.name = name;
          }
 
          public void run() {
-         	runGA(population, stop, mutation, selectionAlg, crossAlg, k);
+         	runGA(population, stop, mutation, selectionAlg, crossAlg, k, name);
          }
      }
 
-	public void runGA(ArrayList<OLAGraph> population, int stop, double mutation, int selectionAlg, int crossAlg, double k) {
+	public void runGA(ArrayList<OLAGraph> population, int stop, double mutation, int selectionAlg, int crossAlg, double k, String name) {
 		int count = 0;
 		int minGeneration = 0;
 		int minFitness = 0;
 		long start = System.currentTimeMillis();
-		String tag = "";
+		String tag = name;
 		ArrayList<Integer> fitnesses = new ArrayList<Integer>();
+		ArrayList<Integer> fitnessesOccurances = new ArrayList<Integer>();
 		int[] blankLayout = new int[population.get(0).getLayout().length];
 		//OLAGraphDrawer drawer = new OLAGraphDrawer(blankLayout, contrivedMatrix, population.get(0).getRows(), population.get(0).getColumns());
-		if(selectionAlg == 0) 
-			tag += "tournament,";
-		else
-			tag += "rank,";
-		if(crossAlg == 0)
-			tag += "order1";
-		else if(crossAlg == 1)
-			tag += "cycle";
-		else 
-			tag += "2d";
-		tag += " mut " + mutation;
-		tag += " k " + k;
+		// if(selectionAlg == 0) 
+		// 	tag += "tournament,";
+		// else
+		// 	tag += "rank,";
+		// if(crossAlg == 0)
+		// 	tag += "order1";
+		// else if(crossAlg == 1)
+		// 	tag += "cycle";
+		// else 
+			// tag += "2d";
+		//tag += " mut " + mutation;
+		//tag += " k " + k;
+		tag+=population.size();
 		while(count != stop) {
 			OLAGraph minParent = population.remove(populationMinIndex(population));
 			int newFitness = minParent.getFitness();
@@ -117,6 +123,7 @@ public class OLAGeneticAlgorithm {
 				System.out.println(tag + " Gen " + count + "min " + minFitness);// " min:" + minParent.toString());
 				//drawer.setLayout(minParent.getLayout());
 				fitnesses.add(newFitness);
+				fitnessesOccurances.add(count);
 				minFitness = newFitness;
 				minGeneration = count;
 			}
@@ -143,20 +150,20 @@ public class OLAGeneticAlgorithm {
 			 //	System.out.println(tag + " gen " + count);// + "min " + minFitness + " took " + (System.currentTimeMillis() - start));
 			population.add(minParent);
 			count++;
-			if(count%10==0) {
-				try{
-				Thread.sleep(100);
-			}
-			catch(Exception ex){}
-			}
+
 		}
 		
 		try {
-		PrintWriter writer = new PrintWriter(tag+System.currentTimeMillis()+".txt", "UTF-8");
+		PrintWriter writer = new PrintWriter(tag+System.currentTimeMillis()+".ola", "UTF-8");
 		writer.println("finished in " + (System.currentTimeMillis() - start) + "ms and " + count + " generations. Minimum generation " + minGeneration);
 		writer.println("resulting layout " + population.get(populationMinIndex(population)).toString());
 		writer.println();
+		writer.println("fitnesses");
 		for(int i : fitnesses)
+			writer.print(i + ",");
+		writer.println();
+		writer.println("fitnessesOccurances");
+		for(int i : fitnessesOccurances)
 			writer.print(i + ",");
 		writer.close();
 		}
