@@ -33,21 +33,31 @@ public class OLAAlgorithmGenerator {
 
 		Scanner userInput = new Scanner(System.in);
 		boolean stopAsking = false;
-
-		System.out.print("Number of rows: ");
-		int rows = userInput.nextInt();
-		System.out.print("Number of cols: ");
-		int cols = userInput.nextInt();
-
-		System.out.print("Minimum connections: ");
-		int minConn = userInput.nextInt();
-		System.out.print("Maximum connections: ");
-		int maxConn = userInput.nextInt();
-		System.out.print("Weightedness/Bias of connections (1 for no bias): ");
-		int weightedness = userInput.nextInt();
-		System.out.println("Generating connection matrix...");
-		int[][] connectionMatrix = OLAGraph.generateConnectionMatrix(rows, cols, minConn, maxConn, weightedness);
-
+		System.out.print("Generate random connections or contrived connections (type r  for random or c for contrived): ");
+		String randomOrContrived = userInput.next();
+		int[][] connectionMatrix;
+		int rows;
+		int cols;
+		if(randomOrContrived.equalsIgnoreCase("r")) {
+			System.out.print("Number of rows: ");
+			rows = userInput.nextInt();
+			System.out.print("Number of cols: ");
+			cols = userInput.nextInt();
+	
+			System.out.print("Minimum connections: ");
+			int minConn = userInput.nextInt();
+			System.out.print("Maximum connections: ");
+			int maxConn = userInput.nextInt();
+			System.out.print("Weightedness/Bias of connections (1 for no bias): ");
+			int weightedness = userInput.nextInt();
+			System.out.println("Generating connection matrix...");
+			connectionMatrix = OLAGraph.generateConnectionMatrix(rows, cols, minConn, maxConn, weightedness);
+		}
+		else {
+			connectionMatrix = contrivedMatrix;
+			rows = 6;
+			cols = 3;
+		}
 		while(!stopAsking) {
 			System.out.println("Type \"g\" for a simple genetic algorithm.");
 			System.out.println("Type \"s\" for a simulated annealing algorithm.");
