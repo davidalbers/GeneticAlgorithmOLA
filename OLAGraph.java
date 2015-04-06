@@ -106,28 +106,62 @@ public class OLAGraph implements Comparable<OLAGraph> {
 		return info;
 	}
 
+	public static String connectionMatrixToString(int[][] connection) {
+		int sum = 0;
+		String matrixString = "{\n";
+		for(int i = 0; i < connection.length; i++) {
+			matrixString += "\t{";
+			for (int j = 0; j < connection[i].length; j++) {
+				matrixString += connection[i][j];
+				sum += connection[i][j];
+				if(j != connection[i].length - 1)
+					matrixString += ",";
+			}
+			matrixString += "}";
+			if(i != connection.length -1)
+				matrixString += ",";
+			matrixString += "\n";
+		}
+		matrixString += "}";
+		int averageNumConn = (int)((double)sum / (connection.length * connection[0].length) + .5);
+		matrixString += "\n Average number connections: " + averageNumConn;
+		return matrixString; 
+	}
+
 	public OLAGraph copy() {
 		return new OLAGraph(rows, cols, layout, connectionMatrix);
 	}
 
-	public static int[][] generateConnectionMatrix(int rows, int cols, int minConnections, int maxConnections) {
+	public static int[][] generateConnectionMatrix(int rows, int cols, int minConnections, int maxConnections, int weightedness) {
 		int length = rows * cols;
 		int[][] generatedMatrix = new int[length][length];
-
 		for (int vertex = 0; vertex < length; vertex++) {
 			for (int vertexToConnect = vertex + 1; vertexToConnect < length; vertexToConnect++) {
-				int connections = (int)(Math.random() * (maxConnections - minConnections + 1)) + minConnections;
+				int connections = generateWeightedRandomNumber(minConnections, maxConnections, weightedness); 
 				generatedMatrix[vertex][vertexToConnect] = connections;
 				generatedMatrix[vertexToConnect][vertex] = connections;
 			}
 		}
-		for(int i = 0; i < (rows * cols) / 10; i++) {
-			generatedMatrix[(int)(Math.random() * length)][(int)(Math.random() * length)] *= 10;
-		}
-		for(int i = 0; i < (rows * cols) / 10; i++) {
-			generatedMatrix[(int)(Math.random() * length)][(int)(Math.random() * length)] = 0;
-		}
 		return generatedMatrix;
+	}
+
+	/**
+	* Generate a random number that is weighted/biased towards smaller numbers
+	* For more bias make weight larger. 1 is no bias.
+	*/
+	public static int generateWeightedRandomNumber(int min, int max, int weightedness) {
+		//Generate a random number and look it up in a table defined by
+		// for(index x in range min to max)
+		//    y = ((i+1) / (max - min))^(1/weightedness)
+		// for weigtedness = 2, min =0, max = 4
+		// x|y  (if random <= y then )
+		// --- 
+		// 0|0.447
+		// 1|0.632
+		// 2|0.774
+		// 3|0.894
+		// 4|1
+		return (int)Math.ceil( Math.pow(Math.random() , weightedness) * (max - min + 1) - 1);
 	}
 
 	public int[] generateReverseLookup() {

@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.Collections;
 import java.io.PrintWriter;
-public class SimulatedAnnealing {
+public class HillClimbing{
 
 	private int rows;
 	private int cols;
@@ -15,34 +15,21 @@ public class SimulatedAnnealing {
 	private String name;
 	private int perturbationFunction;
 
-	public SimulatedAnnealing(int rows, int cols, int[][] connectionMatrix, double initialTemperature, 
-		int initialIterations, double alpha, double beta, int maxIterations, int maxTimeMs, int perturbationFunction, String name) {
+	public HillClimbing(int rows, int cols, int[][] connectionMatrix, int maxIterations, int maxTimeMs, int perturbationFunction, String name) {
 		this.rows = rows;
 		this.cols = cols;
 		this.connectionMatrix = connectionMatrix;
-		this.initialTemperature = initialTemperature;
-		this.initialIterations = initialIterations;
-		this.alpha = alpha;
-		this.beta = beta;
 		this.maxIterations = maxIterations;
 		this.maxTimeMs = maxTimeMs;
 		this.perturbationFunction = perturbationFunction;
 		this.name = name;
 	}
-	
-	public void runSA() {
+
+	public void runHillClimb() {
 		OLAGraph initialSolution = generateSolution(rows, cols, connectionMatrix);
 		OLAGraph solutionN = initialSolution;
-		double temperature = initialTemperature;
-		double iterations = initialIterations;
 		int count = 0;
-		int leastFitParentCount = 0;
-		int fitParentCount = 0;
 		int minFitness = initialSolution.getFitness();
-		ArrayList<Integer> fitnesses = new ArrayList<Integer>();
-		ArrayList<Integer> fitnessesOccurances = new ArrayList<Integer>();
-		fitnesses.add(minFitness);
-		fitnessesOccurances.add(0);
 		String tag = name + ", ";
 		if(perturbationFunction == 0)
 			tag += "pairwise";
@@ -50,31 +37,23 @@ public class SimulatedAnnealing {
 			tag += "cycle";
 		long startTime = System.currentTimeMillis();
 		System.out.println(name + ", initial fitness " + initialSolution.getFitness());
+
+		ArrayList<Integer> fitnesses = new ArrayList<Integer>();
+		ArrayList<Integer> fitnessesOccurances = new ArrayList<Integer>();
+		fitnesses.add(minFitness);
+		fitnessesOccurances.add(0);
 		while(count != maxIterations && (System.currentTimeMillis() - startTime) < maxTimeMs) {
-			int innerLoopCount = 0;
-			while(innerLoopCount < iterations) {
-				OLAGraph newSolution;
-				if(perturbationFunction == 0)
-					newSolution = pairwiseExchange(solutionN);
-				else
-					newSolution = cycleLength3(solutionN);
-				if(newSolution.getFitness() < solutionN.getFitness()) {
-					fitParentCount++;
-					solutionN = newSolution;
-				}
-				else if (acceptLeastFitSolution(solutionN, newSolution, temperature)) {
-					solutionN = newSolution;
-					leastFitParentCount++;
-				}
-				innerLoopCount++;
-			}
-			temperature = temperature * alpha; 
-			iterations = iterations * beta;
-			if(solutionN.getFitness() < minFitness) {
+			OLAGraph newSolution;
+			if(perturbationFunction == 0)
+				newSolution = pairwiseExchange(solutionN);
+			else
+				newSolution = cycleLength3(solutionN);
+			if(newSolution.getFitness() < solutionN.getFitness()) {
+				solutionN = newSolution;
 				minFitness = solutionN.getFitness();
 				fitnesses.add(minFitness);
 				fitnessesOccurances.add(count);
-				System.out.println(name + ", temp " + temperature + " fitness " + solutionN.getFitness());
+				System.out.println(name + " fitness " + solutionN.getFitness());
 			}
 			count++;
 		}
@@ -138,10 +117,6 @@ public class SimulatedAnnealing {
 		OLAGraph newSoln = new OLAGraph(oldSoln.getRows(), oldSoln.getColumns(), layout, oldSoln.getConnectionMatrix());
 		//System.out.println("after exchange\n" + newSoln.toString());
 		return newSoln;
-	}
-	
-	public boolean acceptLeastFitSolution(OLAGraph oldSoln, OLAGraph newSoln, double temp) {
-		return Math.random() <  Math.exp((oldSoln.getFitness() - newSoln.getFitness())/temp);
 	}
 	
 	public OLAGraph generateSolution(int rows, int cols, int[][] connMatrix) {

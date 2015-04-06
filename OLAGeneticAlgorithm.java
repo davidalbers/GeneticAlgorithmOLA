@@ -2,173 +2,144 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.io.PrintWriter;
 public class OLAGeneticAlgorithm {
-	// static int[] layout = {3,2,0,1};test
-	static int[][] contrivedMatrix = 
-			{
-	  //{0,  1,   2,  3,   4   ,5,   6,  7,   8, 9,0,1,2,3,4,5,6,7}
-   /*0*/{0,  0,   0,  0,   500 ,0,   0,  0,   0, 0,0,0,0,0,0,0,0,0},
-   /*1*/{0,  0,   0,  0,   5000,0,   0,  0,   0, 0,0,0,0,0,0,0,0,0},
-   /*2*/{0,  0,   0,  0,   500 ,0,   0,  0,   0, 0,0,0,0,0,0,0,0,0},
-   /*3*/{0,  0,   0,  0,   5000,0,   0,  0,   0, 0,0,0,0,0,0,0,0,0},
-   /*4*/{500,5000,500,5000,0,   5000,500,5000,500, 0,0,0,0,0,0,0,0,0},
-   /*5*/{0,  0,   0,  0,   5000,0,0,0,0, 0,   0,0,0,0,0,0,0,0},
-   /*6*/{0,  0,   0,  0,   500 ,0,0,0,0, 0,   0,0,0,0,0,0,0,0},
-   /*7*/{0,  0,   0,  0,   5000,0,0,0,0, 0,   0,0,0,0,0,0,0,0},
-   /*8*/{0,  0,   0,  0,   500 ,0,0,0,0, 0,   0,0,0,0,0,0,0,0},
-   /*9*/{0,  0,   0,  0,0,0,0,0,0,            0  ,0   ,0  ,0   ,500 ,0   ,0  ,0,   0},
-   /*0*/{0,  0,   0,  0,0,0,0,0,0,            0  ,0   ,0  ,0   ,5000,0   ,0  ,0,   0},
-   /*1*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,500 ,0   ,0  ,0,   0},
-   /*2*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,5000,0   ,0  ,0,   0},
-   /*3*/{0,  0,   0,  0,0,0,0,0,0,    		  500,5000,500,5000,0   ,5000,500,5000,500},
-   /*4*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,5000,0   ,0  ,0,   0},
-   /*5*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,500 ,0   ,0  ,0,   0},
-   /*6*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,5000,0   ,0  ,0,   0},
-   /*7*/{0,  0,   0,  0,0,0,0,0,0,      	  0  ,0   ,0  ,0   ,500 ,0   ,0  ,0,   0}
-	  //{0,  1,   2,  3,4,5,6,7,8,            9,  0,  1,   2,   3,   4,  5,   6,   7}
-			};
+
 	private ArrayList<OLAGraph> population;
-	public static void main(String[] args) {
-		// OLAGraph olaGraph = new OLAGraph(2,2,layout,connectionMatrix);
-		// System.out.println(olaGraph.findFitness() + "");
-		OLAGeneticAlgorithm geneticAlgorithm = new OLAGeneticAlgorithm();
-		geneticAlgorithm.run();
-	}
+	private int rows;
+	private int cols;
+	private int[][] connectionMatrix;
+	private int populationSize;
+	private int selectionAlg;
+	private double tournamentK;
+	private int crossAlg;
+	private double crossRate;
+	private int mutationOp;
+	private double mutationRate;
+	private int maxIterations;
+	private int maxTimeMs;
+	private String name;
 
-	public void run() {
-		int rows = 6;
-		int cols = 3;
-		int[][] testConnection = OLAGraph.generateConnectionMatrix(rows, cols, 0, 9);
-		// System.out.println("Generated connection matrix");
-		// for(int i = 0; i < testConnection.length; i++) {
-		// 	for (int j = 0; j < testConnection[i].length; j++) {
-		// 		System.out.print(testConnection[i][j] + ",");
-		// 	}
-		// 	System.out.println("");
-		// }
-		//int[] optimalLayout = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
-		//OLAGraphDrawer drawer = new OLAGraphDrawer(optimalLayout, contrivedMatrix, rows, cols);
-
-		
-		
-		ArrayList<OLAGraph> testPopulation = generatePopulation(501, rows, cols, testConnection);
-		ArrayList<OLAGraph> testPopulation2 = new ArrayList<OLAGraph>();
-		ArrayList<OLAGraph> testPopulation3 = new ArrayList<OLAGraph>();
-		ArrayList<OLAGraph> testPopulation4 = new ArrayList<OLAGraph>();
-		ArrayList<OLAGraph> testPopulation5 = new ArrayList<OLAGraph>();	
-		
-		for(OLAGraph graph : testPopulation) {
-			testPopulation2.add(graph.copy());
-			testPopulation3.add(graph.copy());
-			testPopulation4.add(graph.copy());
-			testPopulation5.add(graph.copy());
-		}
-		
-		(new GAThread(testPopulation, -1, .05, 0, 0, .75, "t1")).start();
-		(new GAThread(testPopulation2, -1, .05, 0, 0, .75, "t2")).start();
-		(new GAThread(testPopulation3, -1, .05, 0, 0, .75, "t3")).start();
-		(new GAThread(testPopulation4, -1, .05, 0, 0, .75, "t4")).start();
-		(new GAThread(testPopulation5, -1, .05, 0, 0, .75, "t5")).start();
-	}
-
-	class GAThread extends Thread {
-         ArrayList<OLAGraph> population;
-         int stop;
-         double mutation;
-         int selectionAlg;
-         int crossAlg;
-         double k;
-	String name;
-         GAThread(ArrayList<OLAGraph> population, int stop, double mutation, int selectionAlg, int crossAlg, double k, String name) {
-             this.population = population;
-             this.stop = stop;
-             this.mutation = mutation;
-             this.selectionAlg = selectionAlg;
-             this.crossAlg = crossAlg;
-             this.k = k;
+	public OLAGeneticAlgorithm(int rows, int cols, int[][] connectionMatrix, int populationSize, 
+		int selectionAlg, double tournamentK, int crossAlg, double crossRate, int mutationOp, double mutationRate, int maxIterations, int maxTimeMs, String name) {
+		this.rows = rows;
+		this.cols = cols;
+		this.connectionMatrix = connectionMatrix;
+		this.populationSize = populationSize;
+		this.selectionAlg = selectionAlg;
+		this.tournamentK = tournamentK;
+		this.crossAlg = crossAlg;
+		this.crossRate = crossRate;
+		this.mutationOp = mutationOp;
+		this.mutationRate = mutationRate;
+		this.maxIterations = maxIterations;
+		this.maxTimeMs = maxTimeMs;
 		this.name = name;
-         }
+		population = generatePopulation(populationSize, rows, cols, connectionMatrix);
+	}
 
-         public void run() {
-         	runGA(population, stop, mutation, selectionAlg, crossAlg, k, name);
-         }
-     }
 
-	public void runGA(ArrayList<OLAGraph> population, int stop, double mutation, int selectionAlg, int crossAlg, double k, String name) {
+	public void runGA() {
 		int count = 0;
 		int minGeneration = 0;
 		int minFitness = 0;
-		long start = System.currentTimeMillis();
-		String tag = name;
+		String tag = name + ", ";
 		ArrayList<Integer> fitnesses = new ArrayList<Integer>();
 		ArrayList<Integer> fitnessesOccurances = new ArrayList<Integer>();
 		int[] blankLayout = new int[population.get(0).getLayout().length];
 		//OLAGraphDrawer drawer = new OLAGraphDrawer(blankLayout, contrivedMatrix, population.get(0).getRows(), population.get(0).getColumns());
-		// if(selectionAlg == 0) 
-		// 	tag += "tournament,";
-		// else
-		// 	tag += "rank,";
-		// if(crossAlg == 0)
-		// 	tag += "order1";
-		// else if(crossAlg == 1)
-		// 	tag += "cycle";
-		// else 
-			// tag += "2d";
-		//tag += " mut " + mutation;
-		//tag += " k " + k;
-		tag+=population.size();
-		while(count != stop) {
+		tag += "size " + population.size() + ",";
+		if(selectionAlg == 0) 
+			tag += "tour,";
+		else
+			tag += "rank,";
+		if(crossAlg == 0)
+			tag += "order1,";
+		else if(crossAlg == 1)
+			tag += "cycle ,";
+		else 
+			tag += "2point,";
+		tag += " mut " + mutationRate + ",";
+		if(mutationOp == 0)
+			tag += "pairExc,";
+		else 
+			tag += "cycle3 ,";
+		tag += "k " + tournamentK + ",";
+		
+		long startTime = System.currentTimeMillis();
+
+		while(count != maxIterations && (System.currentTimeMillis() - startTime) < maxTimeMs) {
 			OLAGraph minParent = population.remove(populationMinIndex(population));
 			int newFitness = minParent.getFitness();
 			if(newFitness < minFitness || count == 0) {
-				System.out.println(tag + " Gen " + count + "min " + minFitness);// " min:" + minParent.toString());
 				//drawer.setLayout(minParent.getLayout());
 				fitnesses.add(newFitness);
 				fitnessesOccurances.add(count);
 				minFitness = newFitness;
 				minGeneration = count;
+				System.out.println(name + " Gen " + count + " min " + minFitness);
 			}
+
 			ArrayList<OLAGraph> selected;
 			if(selectionAlg == 0)
-				selected = performTournament(population, k);
+				selected = performTournament(population, tournamentK);
 			else
 				selected = performRank(population);
 
-			ArrayList<OLAGraph> crossed;
-			if(crossAlg == 0)
-				crossed = order1Crossover(selected);
-			else if(crossAlg == 1)
-				crossed = cycle(selected);
-			else
-				crossed = TwoDPointCrossover(selected, selected.get(0).getRows(), selected.get(0).getColumns());
-			for(int i = 0; i < (int)(crossed.size() * mutation); i++) {
-				crossed.add(mutate(crossed.remove((int)(Math.random() * crossed.size()))));
+			ArrayList<OLAGraph> toCross = new ArrayList<OLAGraph>();
+			int toCrossSize = (int)(selected.size() * crossRate + .5);
+			while(toCross.size() < toCrossSize) {
+				int indexToAdd = (int)(Math.random() * selected.size());
+				toCross.add(selected.remove(indexToAdd));
 			}
-			mutation = .05;
-			population = crossed;
 
-			 //if(count%25 == 0)
-			 //	System.out.println(tag + " gen " + count);// + "min " + minFitness + " took " + (System.currentTimeMillis() - start));
+			population.clear();
+			population.addAll(selected);
+
+			if(crossAlg == 0)
+				population.addAll(order1Crossover(toCross));
+			else if(crossAlg == 1)
+				population.addAll(cycle(toCross));
+			else
+				population.addAll(TwoPointCrossover(toCross, selected.get(0).getRows(), selected.get(0).getColumns()));
+			double oldMutation = mutationRate;
+			// if(populationVariance(population) < .1) {
+			// 	System.out.println(tag + "KICKING");
+			// 	mutationRate = 1;
+			// }
+			if(mutationOp == 0) {
+				for(int i = 0; i < (int)(population.size() * mutationRate); i++) {
+					population.add(pairwiseExchange(population.remove((int)(Math.random() * population.size()))));
+				}
+			}
+			else {
+				for(int i = 0; i < (int)(population.size() * mutationRate); i++) {
+					population.add(cycleLength3(population.remove((int)(Math.random() * population.size()))));
+				}
+			}
+			mutationRate = oldMutation;
+
 			population.add(minParent);
+			// if(count%1000 == 0 || (count < 1000 && count % 10 ==0))
+			//   	System.out.println(tag + " gen " + count + " min " + populationMin(population) + " avg " + (int)(populationAverage(population)) + " max " + populationMax(population) + " var " + populationVariance(population));// + "min " + minFitness + " took " + (System.currentTimeMillis() - start));
 			count++;
 
 		}
 		
 		try {
-		PrintWriter writer = new PrintWriter(tag+System.currentTimeMillis()+".ola", "UTF-8");
-		writer.println("finished in " + (System.currentTimeMillis() - start) + "ms and " + count + " generations. Minimum generation " + minGeneration);
-		writer.println("resulting layout " + population.get(populationMinIndex(population)).toString());
-		writer.println();
-		writer.println("fitnesses");
-		for(int i : fitnesses)
-			writer.print(i + ",");
-		writer.println();
-		writer.println("fitnessesOccurances");
-		for(int i : fitnessesOccurances)
-			writer.print(i + ",");
-		writer.close();
-		}
+			PrintWriter writer = new PrintWriter(tag+System.currentTimeMillis()+".ola", "UTF-8");
+			writer.println("finished in " + (System.currentTimeMillis() - startTime) + "ms and " + count + " generations. Minimum generation " + minGeneration);
+			writer.println("resulting layout " + population.get(populationMinIndex(population)).toString());
+			writer.println();
+			writer.println("fitnesses");
+			for(int i : fitnesses)
+				writer.print(i + ",");
+			writer.println();
+			writer.println("fitnessesOccurances");
+			for(int i : fitnessesOccurances)
+				writer.print(i + ",");
+			writer.close();
+			}
 		catch(Exception ex) {
-			System.out.println("error writing output.");
+				System.out.println("error writing output.");
 		}
 	}
 
@@ -241,7 +212,7 @@ public class OLAGeneticAlgorithm {
 	public ArrayList<OLAGraph> order1Crossover(ArrayList<OLAGraph> parents) {
 		int parentIndex = 0;
 		ArrayList<OLAGraph> children = new ArrayList<OLAGraph>();
-		while(parentIndex < parents.size()) {
+		while(parentIndex+1 < parents.size()) {
 			OLAGraph parent1 = parents.get(parentIndex);
 			parentIndex++;
 			OLAGraph parent2 = parents.get(parentIndex);
@@ -325,7 +296,7 @@ public class OLAGeneticAlgorithm {
 	public ArrayList<OLAGraph> cycle(ArrayList<OLAGraph> parents) {
 		ArrayList<OLAGraph> children = new ArrayList<OLAGraph>();
 		int parentIndex = 0;
-		while(children.size() != parents.size()) {
+		while(parentIndex+1 < parents.size()) {
 			OLAGraph parent1 = parents.get(parentIndex);
 			parentIndex++;
 			OLAGraph parent2 = parents.get(parentIndex);
@@ -381,16 +352,13 @@ public class OLAGeneticAlgorithm {
 		}
 		return children;
 	}
-	
-	//Slow, inefficient :( 
-	public ArrayList<OLAGraph> TwoDPointCrossover(ArrayList<OLAGraph> parents, int rows, int cols) {
+
+	public ArrayList<OLAGraph> TwoPointCrossover(ArrayList<OLAGraph> parents, int rows, int cols) {
 		int parentIndex = 0;
 		ArrayList<OLAGraph> children = new ArrayList<OLAGraph>();
 		while(children.size() < parents.size()) {
-			int xCrossoverPoint1 = 0;//(int)(Math.random() * (cols - 2));
-			int xCrossoverPoint2 = (int)(Math.random() * (cols - xCrossoverPoint1)) + xCrossoverPoint1;
-			int yCrossoverPoint1 = 0;//(int)(Math.random() * (rows - 2));
-			int yCrossoverPoint2 = 0;//(int)(Math.random() * (rows - yCrossoverPoint1)) + yCrossoverPoint1;
+			int crossoverPoint1 = (int)(Math.random() * cols);
+			int crossoverPoint2 = (int)(Math.random() * (rows - crossoverPoint1)) + crossoverPoint1;
 			int[][] connectionMatrix = parents.get(0).getConnectionMatrix();
 			int[] parent1layout = parents.get(parentIndex).getLayout();
 			parentIndex++;
@@ -406,108 +374,26 @@ public class OLAGeneticAlgorithm {
 			ArrayList<Integer> child1Duplicates = new ArrayList<Integer>();
 			ArrayList<Integer> child2Duplicates = new ArrayList<Integer>();
 
-			// 1,2,3
-			// 4,5,6
-			// 7,8,9
-			for(int row = 0; row < rows; row++) {
-				for(int col = 0; col < cols; col++) {
-					if(row < yCrossoverPoint1) {
-						if(col < xCrossoverPoint1) { //1
-							if(findVertex(child1layout, parent1layout[row * cols + col], row * cols + col))
-								child1Duplicates.add(parent1layout[row * cols + col]);
-							else
-								child1layout[row * cols + col] = parent1layout[row * cols + col];
-							if(findVertex(child2layout, parent2layout[row * cols + col], row * cols + col))
-								child2Duplicates.add(parent2layout[row * cols + col]);
-							else
-								child2layout[row * cols + col] = parent2layout[row * cols + col];
-						}
-						else if(col <= xCrossoverPoint2) { //2
-							if(findVertex(child1layout, parent2layout[row * cols + col], row * cols + col))
-								child1Duplicates.add(parent2layout[row * cols + col]);
-							else
-								child1layout[row * cols + col] = parent2layout[row * cols + col];
-							if(findVertex(child2layout, parent1layout[row * cols + col], row * cols + col))
-								child2Duplicates.add(parent1layout[row * cols + col]);
-							else
-								child2layout[row * cols + col] = parent1layout[row * cols + col];
-						}
-						else { //3
-							if(findVertex(child1layout, parent1layout[row * cols + col], row * cols + col))
-								child1Duplicates.add(parent1layout[row * cols + col]);
-							else
-								child1layout[row * cols + col] = parent1layout[row * cols + col];
-							if(findVertex(child2layout, parent2layout[row * cols + col], row * cols + col))
-								child2Duplicates.add(parent2layout[row * cols + col]);
-							else
-								child2layout[row * cols + col] = parent2layout[row * cols + col];
-						}
-					}
-					else if(row <= yCrossoverPoint2) {
-						if(col < xCrossoverPoint1) { //4
-							if(findVertex(child1layout, parent2layout[row * cols + col], row * cols + col))
-								child1Duplicates.add(parent2layout[row * cols + col]);
-							else
-								child1layout[row * cols + col] = parent2layout[row * cols + col];
-							if(findVertex(child2layout, parent1layout[row * cols + col], row * cols + col))
-								child2Duplicates.add(parent1layout[row * cols + col]);
-							else
-								child2layout[row * cols + col] = parent1layout[row * cols + col];
-						}
-						else if(col <= xCrossoverPoint2) { //5
-							if(findVertex(child1layout, parent1layout[row * cols + col], row * cols + col))
-								child1Duplicates.add(parent1layout[row * cols + col]);
-							else
-								child1layout[row * cols + col] = parent1layout[row * cols + col];
-							if(findVertex(child2layout, parent2layout[row * cols + col], row * cols + col))
-								child2Duplicates.add(parent2layout[row * cols + col]);
-							else
-								child2layout[row * cols + col] = parent2layout[row * cols + col];
-						}
-						else { //6
-							if(findVertex(child1layout, parent2layout[row * cols + col], row * cols + col))
-								child1Duplicates.add(parent2layout[row * cols + col]);
-							else
-								child1layout[row * cols + col] = parent2layout[row * cols + col];
-							if(findVertex(child2layout, parent1layout[row * cols + col], row * cols + col))
-								child2Duplicates.add(parent1layout[row * cols + col]);
-							else
-								child2layout[row * cols + col] = parent1layout[row * cols + col];
-						}
-					}
-					else {
-						if(col < xCrossoverPoint1) { //7
-							if(findVertex(child1layout, parent1layout[row * cols + col], row * cols + col))
-								child1Duplicates.add(parent1layout[row * cols + col]);
-							else
-								child1layout[row * cols + col] = parent1layout[row * cols + col];
-							if(findVertex(child2layout, parent2layout[row * cols + col], row * cols + col))
-								child2Duplicates.add(parent2layout[row * cols + col]);
-							else
-								child2layout[row * cols + col] = parent2layout[row * cols + col];
-						}
-						else if(col <= xCrossoverPoint2) { //8
-							if(findVertex(child1layout, parent2layout[row * cols + col], row * cols + col))
-								child1Duplicates.add(parent2layout[row * cols + col]);
-							else
-								child1layout[row * cols + col] = parent2layout[row * cols + col];
-							if(findVertex(child2layout, parent1layout[row * cols + col], row * cols + col))
-								child2Duplicates.add(parent1layout[row * cols + col]);
-							else
-								child2layout[row * cols + col] = parent1layout[row * cols + col];
-						}
-						else { //9
-							if(findVertex(child1layout, parent1layout[row * cols + col], row * cols + col))
-								child1Duplicates.add(parent1layout[row * cols + col]);
-							else
-								child1layout[row * cols + col] = parent1layout[row * cols + col];
-							if(findVertex(child2layout, parent2layout[row * cols + col], row * cols + col))
-								child2Duplicates.add(parent2layout[row * cols + col]);
-							else
-								child2layout[row * cols + col] = parent2layout[row * cols + col];
-						}
-					}	
+			for(int i = 0; i < child1layout.length; i++) {
+				int valueC1;
+				int valueC2;
+				if(i < crossoverPoint1 || i > crossoverPoint2) {
+					valueC1 = parent2layout[i];
+					valueC2 = parent1layout[i];
 				}
+				else {
+					valueC1 = parent1layout[i];
+					valueC2 = parent2layout[i];
+
+				}
+				if(findVertex(child1layout, valueC1, i))
+					child1Duplicates.add(valueC1);
+				else
+					child1layout[i] = valueC1;
+				if(findVertex(child2layout, valueC2, i))
+					child2Duplicates.add(valueC2);
+				else
+					child2layout[i] = valueC2;
 			}
 			
 			for(int i = 0; i < parent1layout.length; i++) {
@@ -516,53 +402,22 @@ public class OLAGeneticAlgorithm {
 				if(child2layout[i] == -1)
 					child2layout[i] = child1Duplicates.remove(0);
 			}
-			/*
-			System.out.println("Crossover points " + xCrossoverPoint1 + "," + xCrossoverPoint2 + "," + yCrossoverPoint1 + "," + yCrossoverPoint2);
-			System.out.println("\nParent1");
-			for(int i = 0; i < parent1layout.length; i++) {
-				if(i%cols == 0)
-					System.out.println();
-				System.out.print(parent1layout[i] + ",");
-				
-			}
-			System.out.println("\nParent2");
-			for(int i = 0; i < parent1layout.length; i++) {
-				if(i%cols == 0)
-					System.out.println();
-				System.out.print(parent2layout[i] + ",");
-				
-			}
-			System.out.println("\nChild1");
-			for(int i = 0; i < parent1layout.length; i++) {
-				if(i%cols == 0)
-					System.out.println();
-				System.out.print(child1layout[i] + ",");
-				
-			}
-			System.out.println("\nChild2");
-			for(int i = 0; i < parent1layout.length; i++) {
-				if(i%cols == 0)
-					System.out.println();
-				System.out.print(child2layout[i] + ",");
-				
-			}
-			*/
 			children.add(new OLAGraph(rows, cols, child1layout, connectionMatrix));
 			children.add(new OLAGraph(rows, cols, child2layout, connectionMatrix));
 		}
 		return children;
 	}
 	
-	public boolean findVertex(int[] layout, int vertex, int stop) {
-		for(int i = 0; i <= stop; i++) {
+	public boolean findVertex(int[] layout, int vertex, int maxIterations) {
+		for(int i = 0; i <= maxIterations; i++) {
 			if(layout[i] == vertex)
 				return true;
 		}
 		return false;
 	}
 
-	public OLAGraph mutate(OLAGraph graph) {
-		int[] layout = graph.getLayout();
+	public OLAGraph pairwiseExchange(OLAGraph oldSoln) {
+		int[] layout = oldSoln.copy().getLayout();
 
 		int swapIndex1 = (int)(Math.random() * layout.length);
 		int swapIndex2 = (int)(Math.random() * layout.length);
@@ -570,15 +425,33 @@ public class OLAGeneticAlgorithm {
 
 		layout[swapIndex1] = layout[swapIndex2];
 		layout[swapIndex2] = swapTemp;
+		OLAGraph newSoln = new OLAGraph(oldSoln.getRows(), oldSoln.getColumns(), layout, oldSoln.getConnectionMatrix());
+		return newSoln;
+	}
+	
+	public OLAGraph cycleLength3(OLAGraph oldSoln) {
+		
+		int[] layout = oldSoln.copy().getLayout();
 
-		swapIndex1 = (int)(Math.random() * layout.length);
-		swapIndex2 = (int)(Math.random() * layout.length);
-		swapTemp = layout[swapIndex1];
-
-		layout[swapIndex1] = layout[swapIndex2];
-		layout[swapIndex2] = swapTemp;
-
-		return new OLAGraph(graph.getRows(), graph.getColumns(), layout, graph.getConnectionMatrix());
+		int cycleI = (int)(Math.random() * layout.length);
+		int cycleJ = (int)(Math.random() * layout.length);
+		while(cycleJ == cycleI) {
+			cycleJ = (int)(Math.random() * layout.length);
+		}
+		int cycleK = (int)(Math.random() * layout.length);
+		while(cycleK == cycleI || cycleK == cycleJ) {
+			cycleK = (int)(Math.random() * layout.length);
+		}
+		
+		int cycleINew = layout[cycleK];
+		int cycleKNew = layout[cycleJ];
+		int cycleJNew = layout[cycleI];
+		
+		layout[cycleI] = cycleINew;
+		layout[cycleJ] = cycleJNew;
+		layout[cycleK] = cycleKNew;
+		OLAGraph newSoln = new OLAGraph(oldSoln.getRows(), oldSoln.getColumns(), layout, oldSoln.getConnectionMatrix());
+		return newSoln;
 	}
 
 	public double populationAverage(ArrayList<OLAGraph> population) {
@@ -586,7 +459,7 @@ public class OLAGeneticAlgorithm {
 		for(OLAGraph graph : population) {
 			sum += graph.getFitness();
 		}
-		return ((double)sum/population.size());
+		return (double)(sum/population.size());
 	}
 
 	public int populationMin(ArrayList<OLAGraph> population) {
@@ -604,6 +477,15 @@ public class OLAGeneticAlgorithm {
 				max = graph.getFitness();
 		}
 		return max;
+	}
+
+	public double populationVariance(ArrayList<OLAGraph> population) {
+		double avg = populationAverage(population);
+		long sum = 0;
+		for(OLAGraph graph : population) {
+			sum += Math.pow( (graph.getFitness() - avg), 2);
+		}
+		return Math.sqrt((double)(sum / (population.size() -1)));
 	}
 
 	public int populationMinIndex(ArrayList<OLAGraph> population) {
