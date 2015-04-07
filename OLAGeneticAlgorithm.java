@@ -23,6 +23,8 @@ public class OLAGeneticAlgorithm {
 		this.rows = rows;
 		this.cols = cols;
 		this.connectionMatrix = connectionMatrix;
+		if(populationSize % 2 == 0)
+			populationSize++;
 		this.populationSize = populationSize;
 		this.selectionAlg = selectionAlg;
 		this.tournamentK = tournamentK;

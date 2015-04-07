@@ -2,38 +2,54 @@ import java.util.Scanner;
 import java.util.ArrayList;
 public class OLAAlgorithmGenerator {
 
-		static int[][] contrivedMatrix = 
-			{
-	  //{0,  1,   2,  3,   4   ,5,   6,  7,   8, 9,0,1,2,3,4,5,6,7}
-   /*0*/{0,  0,   0,  0,   500 ,0,   0,  0,   0, 0,0,0,0,0,0,0,0,0},
-   /*1*/{0,  0,   0,  0,   5000,0,   0,  0,   0, 0,0,0,0,0,0,0,0,0},
-   /*2*/{0,  0,   0,  0,   500 ,0,   0,  0,   0, 0,0,0,0,0,0,0,0,0},
-   /*3*/{0,  0,   0,  0,   5000,0,   0,  0,   0, 0,0,0,0,0,0,0,0,0},
-   /*4*/{500,5000,500,5000,0,   5000,500,5000,500, 0,0,0,0,0,0,0,0,0},
-   /*5*/{0,  0,   0,  0,   5000,0,0,0,0, 0,   0,0,0,0,0,0,0,0},
-   /*6*/{0,  0,   0,  0,   500 ,0,0,0,0, 0,   0,0,0,0,0,0,0,0},
-   /*7*/{0,  0,   0,  0,   5000,0,0,0,0, 0,   0,0,0,0,0,0,0,0},
-   /*8*/{0,  0,   0,  0,   500 ,0,0,0,0, 0,   0,0,0,0,0,0,0,0},
-   /*9*/{0,  0,   0,  0,0,0,0,0,0,            0  ,0   ,0  ,0   ,500 ,0   ,0  ,0,   0},
-   /*0*/{0,  0,   0,  0,0,0,0,0,0,            0  ,0   ,0  ,0   ,5000,0   ,0  ,0,   0},
-   /*1*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,500 ,0   ,0  ,0,   0},
-   /*2*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,5000,0   ,0  ,0,   0},
-   /*3*/{0,  0,   0,  0,0,0,0,0,0,    		  500,5000,500,5000,0   ,5000,500,5000,500},
-   /*4*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,5000,0   ,0  ,0,   0},
-   /*5*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,500 ,0   ,0  ,0,   0},
-   /*6*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,5000,0   ,0  ,0,   0},
-   /*7*/{0,  0,   0,  0,0,0,0,0,0,      	  0  ,0   ,0  ,0   ,500 ,0   ,0  ,0,   0}
-	  //{0,  1,   2,  3,4,5,6,7,8,            9,  0,  1,   2,   3,   4,  5,   6,   7}
-			};
+		// static int[][] contrivedMatrix = 
+		// 	{
+	 //  //{0,  1,   2,  3,   4   ,5,   6,  7,   8, 9,0,1,2,3,4,5,6,7}
+  //  /*0*/{0,  0,   0,  0,   500 ,0,   0,  0,   0, 0,0,0,0,0,0,0,0,0},
+  //  /*1*/{0,  0,   0,  0,   5000,0,   0,  0,   0, 0,0,0,0,0,0,0,0,0},
+  //  /*2*/{0,  0,   0,  0,   500 ,0,   0,  0,   0, 0,0,0,0,0,0,0,0,0},
+  //  /*3*/{0,  0,   0,  0,   5000,0,   0,  0,   0, 0,0,0,0,0,0,0,0,0},
+  //  /*4*/{500,5000,500,5000,0,   5000,500,5000,500, 0,0,0,0,0,0,0,0,0},
+  //  /*5*/{0,  0,   0,  0,   5000,0,0,0,0, 0,   0,0,0,0,0,0,0,0},
+  //  /*6*/{0,  0,   0,  0,   500 ,0,0,0,0, 0,   0,0,0,0,0,0,0,0},
+  //  /*7*/{0,  0,   0,  0,   5000,0,0,0,0, 0,   0,0,0,0,0,0,0,0},
+  //  /*8*/{0,  0,   0,  0,   500 ,0,0,0,0, 0,   0,0,0,0,0,0,0,0},
+  //  /*9*/{0,  0,   0,  0,0,0,0,0,0,            0  ,0   ,0  ,0   ,500 ,0   ,0  ,0,   0},
+  //  /*0*/{0,  0,   0,  0,0,0,0,0,0,            0  ,0   ,0  ,0   ,5000,0   ,0  ,0,   0},
+  //  /*1*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,500 ,0   ,0  ,0,   0},
+  //  /*2*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,5000,0   ,0  ,0,   0},
+  //  /*3*/{0,  0,   0,  0,0,0,0,0,0,    		  500,5000,500,5000,0   ,5000,500,5000,500},
+  //  /*4*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,5000,0   ,0  ,0,   0},
+  //  /*5*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,500 ,0   ,0  ,0,   0},
+  //  /*6*/{0,  0,   0,  0,0,0,0,0,0,    		  0  ,0   ,0  ,0   ,5000,0   ,0  ,0,   0},
+  //  /*7*/{0,  0,   0,  0,0,0,0,0,0,      	  0  ,0   ,0  ,0   ,500 ,0   ,0  ,0,   0}
+	 //  //{0,  1,   2,  3,4,5,6,7,8,            9,  0,  1,   2,   3,   4,  5,   6,   7}
+		// 	};
 
 
+	// min fitness : 1677
+	// 1,3,6,
+	// 2,5,4,
+	// 7,0,8,
+	static int[][] contrivedMatrix = 
+	{
+		{0,9,17,29,7,95,13,21,38},
+		{9,0,84,98,0,0,41,40,31},
+		{17,84,0,3,1,12,4,80,2},
+		{29,98,3,0,15,71,44,23,7},
+		{7,0,1,15,0,35,98,0,57},
+		{95,0,12,71,35,0,70,17,42},
+		{13,41,4,44,98,70,0,3,28},
+		{21,40,80,23,0,17,3,0,7},
+		{38,31,2,7,57,42,28,7,0}
+	};
 
 	public static void main(String[] args) {
 		ArrayList<Thread> algorithmThreads = new ArrayList<Thread>();
 
 		Scanner userInput = new Scanner(System.in);
 		boolean stopAsking = false;
-		System.out.print("Generate random connections or contrived connections (type r  for random or c for contrived): ");
+		System.out.print("Generate random connections or contrived connections (type r for random or c for contrived): ");
 		String randomOrContrived = userInput.next();
 		int[][] connectionMatrix;
 		int rows;
@@ -55,7 +71,7 @@ public class OLAAlgorithmGenerator {
 		}
 		else {
 			connectionMatrix = contrivedMatrix;
-			rows = 6;
+			rows = 3;
 			cols = 3;
 		}
 		while(!stopAsking) {
@@ -111,7 +127,7 @@ public class OLAAlgorithmGenerator {
 
 				System.out.print("Choose a name for this algorithm: ");
 				String name = userInput.next();
-				System.out.println(rows + "," + cols + "," + popSize+ "," + selectionAlg + "," + k + "," + crossoverAlg + "," + crossRate + "," + mutationOp + "," + mutationRate + "," + stopIterations + "," + name);
+				//System.out.println(rows + "," + cols + "," + popSize+ "," + selectionAlg + "," + k + "," + crossoverAlg + "," + crossRate + "," + mutationOp + "," + mutationRate + "," + stopIterations + "," + name);
 				final OLAGeneticAlgorithm newGA = new OLAGeneticAlgorithm(rows, cols, connectionMatrix, popSize, selectionAlg, k, crossoverAlg, crossRate, mutationOp, mutationRate, stopIterations, stopTime, name);
 				Thread gaThread = new Thread(){
 				    public void run(){
@@ -186,7 +202,7 @@ public class OLAAlgorithmGenerator {
 			}
 			else
 				System.out.println("You did not input an expected command");
-			System.out.println("Add another algorithm (y/n)? ");
+			System.out.print("Add another algorithm (y/n)? ");
 			if(userInput.next().equalsIgnoreCase("n"))
 				stopAsking = true;
 		}
