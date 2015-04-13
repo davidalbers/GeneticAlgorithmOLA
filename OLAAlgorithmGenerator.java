@@ -67,32 +67,26 @@ public class OLAAlgorithmGenerator {
 		ArrayList<Thread> algorithmThreads = new ArrayList<Thread>();
 
 		Scanner userInput = new Scanner(System.in);
-		boolean stopAsking = false;
-		System.out.print("Generate random connections or contrived connections (type r for random or c for contrived): ");
-		String randomOrContrived = userInput.next();
+		boolean stopAsking = true;
 		int[][] connectionMatrix;
 		int rows;
 		int cols;
-		if(randomOrContrived.equalsIgnoreCase("r")) {
-			System.out.print("Number of rows: ");
-			rows = userInput.nextInt();
-			System.out.print("Number of cols: ");
-			cols = userInput.nextInt();
-	
-			System.out.print("Minimum connections: ");
-			int minConn = userInput.nextInt();
-			System.out.print("Maximum connections: ");
-			int maxConn = userInput.nextInt();
-			System.out.print("Weightedness/Bias of connections (1 for no bias): ");
-			int weightedness = userInput.nextInt();
-			System.out.println("Generating connection matrix...");
-			connectionMatrix = OLAGraph.generateConnectionMatrix(rows, cols, minConn, maxConn, weightedness);
-		}
-		else {
-			connectionMatrix = contrivedMatrix;
-			rows = 2;
-			cols = 6;
-		}
+		
+		System.out.print("Number of rows: ");
+		rows = userInput.nextInt();
+		System.out.print("Number of cols: ");
+		cols = userInput.nextInt();
+
+		System.out.print("Minimum connections: ");
+		int minConn = userInput.nextInt();
+		System.out.print("Maximum connections: ");
+		int maxConn = userInput.nextInt();
+		System.out.print("Weightedness/Bias of connections (1 for no bias): ");
+		int weightedness = userInput.nextInt();
+		System.out.println("Generating connection matrix...");
+		connectionMatrix = OLAGraph.generateConnectionMatrix(rows, cols, minConn, maxConn, weightedness);
+
+
 		if(rows * cols <= 12) {
 			//can be solved by brute force in about 10 mins or less
 			System.out.print("Run brute force algorithm? (y/n): ");
@@ -108,6 +102,7 @@ public class OLAAlgorithmGenerator {
 				algorithmThreads.add(bruteForceThread);
 			}
 		}
+		System.out.println("Running greedy algorithm, may take a minute");
 		OLAGreedyAlgorithm greedyAlgorithm = new OLAGreedyAlgorithm(rows, cols, connectionMatrix);
 		greedyAlgorithm.run();
 

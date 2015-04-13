@@ -6,7 +6,6 @@ public class OLAGreedyAlgorithm {
 	private boolean[] addedConnections;
 	private int[] layout;
 	private boolean firstPlacement = true;
-
 	public OLAGreedyAlgorithm(int rows, int cols, int[][] connectionMatrix) {
 		this.connectionMatrix = connectionMatrix;
 		this.rows = rows;
@@ -19,8 +18,8 @@ public class OLAGreedyAlgorithm {
 		for(int i = 0; i < rows*cols; i++) {
 				layout[i] = -1;
 		} 
-
 		int connectionsMade = 0;
+		System.out.print("Greedy algorithm percent: 0%");
 		while(connectionsMade != rows * cols) {
 			if(firstPlacement) {
 				int maxEdge = findMaxConnectedEdge();
@@ -40,10 +39,17 @@ public class OLAGreedyAlgorithm {
 				addedConnections[maxEdge] = true;
 			}
 			connectionsMade++;
+			if(connectionsMade == (rows*cols/4))
+				System.out.print(" 25%");
+			if(connectionsMade == (rows*cols/2))
+				System.out.print(" 50%");
+			if(connectionsMade == (3*rows*cols/4))
+				System.out.print(" 75%");
+
 		}
 
 		OLAGraph newGraph = new OLAGraph(rows, cols, layout, connectionMatrix);
-		System.out.println("Greedy algorithm found this graph:\n" + newGraph.toString() + "\n");
+		System.out.println("\nGreedy algorithm found this graph:\n" + newGraph.toString() + "\n");
 	}
 
 	public  int findMaxConnectedEdge() {
@@ -99,4 +105,6 @@ public class OLAGreedyAlgorithm {
 		}
 		return minxyPlacement;
 	}
+	
+
 }
