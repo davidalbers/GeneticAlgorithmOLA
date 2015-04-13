@@ -45,18 +45,18 @@ public class OLAGraph implements Comparable<OLAGraph> {
 		return connectionMatrix;
 	}
 
-	private int findFitness() {
-		int fitness = 0;
-		int offset = 0;
-		for (int vertex = 0; vertex < layout.length; vertex++) {
-			for (int vertexToConnect = vertex; vertexToConnect < layout.length; vertexToConnect++) {
-				int connections = connectionMatrix[vertex][vertexToConnect];
-				int distance = computeDistance(layout[vertex], layout[vertexToConnect]);
-				fitness += connections * distance;
-			}
-		}
-		return fitness;
-	}
+	// private int findFitness() {
+	// 	int fitness = 0;
+	// 	int offset = 0;
+	// 	for (int vertex = 0; vertex < layout.length; vertex++) {
+	// 		for (int vertexToConnect = vertex; vertexToConnect < layout.length; vertexToConnect++) {
+	// 			int connections = connectionMatrix[vertex][vertexToConnect];
+	// 			int distance = computeDistance(layout[vertex], layout[vertexToConnect]);
+	// 			fitness += connections * distance;
+	// 		}
+	// 	}
+	// 	return fitness;
+	// }
 
 	private int findFitness2() {
 		int fitness = 0;
@@ -64,9 +64,11 @@ public class OLAGraph implements Comparable<OLAGraph> {
 			for(int pos2 = pos1; pos2 < layout.length; pos2++) {
 				int vertex = layout[pos1];
 				int vertexToConnect = layout[pos2];
-				int connections = connectionMatrix[vertex][vertexToConnect];
-				int distance = computeDistance(pos1, pos2);
-				fitness += connections * distance;
+				if(vertex != -1 && vertexToConnect != -1) {
+					int connections = connectionMatrix[vertex][vertexToConnect];
+					int distance = computeDistance(pos1, pos2);
+					fitness += connections * distance;
+				}
 			}
 		}
 		return fitness;
@@ -93,6 +95,7 @@ public class OLAGraph implements Comparable<OLAGraph> {
 		int indexY = index / cols;
 		return new int[]{indexX, indexY};
 	 }
+
 
 	public String toString() {
 		String info = "Fitness: " + getFitness() + " Rows: " + rows + "Columns: " + cols + " Layout: ";

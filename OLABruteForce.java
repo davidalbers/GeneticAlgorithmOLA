@@ -1,52 +1,63 @@
 import java.util.*;
 public class OLABruteForce {
-	public static void main(String [] args) {
-		int rows = 3;
-		int cols = 3;
-		int[][] connectionMatrix = OLAGraph.generateConnectionMatrix(rows, cols, 0, 100, 2);
-		ArrayList<Integer> vertices = new ArrayList<Integer>();
-		for(int i = 0; i < rows * cols; i++)
-			vertices.add(i);
-		ArrayList<ArrayList<Integer>> permutations = generatePerm(vertices);
-		int min = 0;
-		int minFitness = 0;
-		for(int j = 0; j < permutations.size(); j++) {
-			ArrayList<Integer> perm = permutations.get(j);
-			//System.out.println("permuation " + j + " of " + permutations.size());
-			int[] permArr = new int[perm.size()];
-			for(int i = 0; i < perm.size(); i++) {
-				permArr[i] = perm.get(i);
-			}
-			OLAGraph permGraph = new OLAGraph(rows, cols, permArr, connectionMatrix);
-			int fitness = permGraph.getFitness();
-			if(fitness < minFitness || j == 0) {
-				min = j;
-				minFitness = fitness;
-			}
-		}
-		System.out.println("min fitness : " + minFitness + "\n");
-		ArrayList<Integer> minGraph = permutations.get(min);
-		for(int i : minGraph)
-			System.out.print(i + ",");
-		System.out.println("\nConnection\n" + OLAGraph.connectionMatrixToString(connectionMatrix));
+	private int minFitness = -1;
+	private int[][] connectionMatrix;
+	private int rows;
+	private int cols; 
+	private int[] minLayout;
+	private int count = 0;
+	private long startTime;
+
+
+	public OLABruteForce(int rows, int cols, int[][] connectionMatrix) {
+		this.rows = rows;
+		this.cols = cols;
+		this.connectionMatrix = connectionMatrix;
 	}
 
-	public static ArrayList<ArrayList<Integer>> generatePerm(ArrayList<Integer> original) {
-     if (original.size() == 0) { 
-       ArrayList<ArrayList<Integer>> result = new ArrayList<ArrayList<Integer>>();
-       result.add(new ArrayList<Integer>());
-       return result;
-     }
-     Integer firstElement = original.remove(0);
-     ArrayList<ArrayList<Integer>> returnValue = new ArrayList<ArrayList<Integer>>();
-     ArrayList<ArrayList<Integer>> permutations = generatePerm(original);
-     for (ArrayList<Integer> smallerPermutated : permutations) {
-       for (int index=0; index <= smallerPermutated.size(); index++) {
-         ArrayList<Integer> temp = new ArrayList<Integer>(smallerPermutated);
-         temp.add(index, firstElement);
-         returnValue.add(temp);
-       }
-     }
-     return returnValue;
-   }
+	public void run() {
+		this.startTime = System.currentTimeMillis();
+		int[] ns = new int[rows * cols];
+		for(int i = 0; i < rows * cols; i++) 
+			ns[i] = i;
+		permute(ns, ns.length);
+		System.out.println("Brute force determined min fitness: " + minFitness + " with layout\n" + Arrays.toString(minLayout));
+	}
+
+ 
+	/**
+	 * http://lucitworks.com/Snippets/Algorithms/permutation.htm
+	 */
+	 
+		private static void swap(int[] v, int i, int j) {
+			int t = v[i]; v[i] = v[j]; v[j] = t;
+		}
+	 
+		public void permute(int[] v, int n) {
+			if (n == 1) {
+				OLAGraph permGraph = new OLAGraph(rows, cols, v, connectionMatrix);
+				if(permGraph.getFitness() < minFitness || minFitness == -1) {
+					minFitness = permGraph.getFitness();
+					minLayout = new int[v.length];
+					System.arraycopy(v, 0, minLayout, 0, v.length );
+				}
+				count++;
+				// if(count%100000 == 0)
+					// System.out.println(count + " permutations took " + (System.currentTimeMillis() - startTime) + "ms");
+
+			} else {
+				for (int i = 0; i < n; i++) {
+					permute(v, n-1);
+					if (n % 2 == 1) {
+						swap(v, 0, n-1);
+					} else {
+						swap(v, i, n-1);
+					}
+				}
+			}
+		}
+	 
+
+	 
+ 
 }
