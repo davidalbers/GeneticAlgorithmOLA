@@ -6,15 +6,20 @@ public class OLAGreedyAlgorithm {
 	private boolean[] addedConnections;
 	private int[] layout;
 	private boolean firstPlacement = true;
+	private int fitnessEvals = 0;
+	private int totalFitnessEvals;
+	private long startTime;
 	public OLAGreedyAlgorithm(int rows, int cols, int[][] connectionMatrix) {
 		this.connectionMatrix = connectionMatrix;
 		this.rows = rows;
 		this.cols = cols;
 		layout = new int[rows*cols];
 		addedConnections = new boolean[rows*cols];
+		totalFitnessEvals = (rows*cols - 1)*(rows*cols)/2;
 	}
 
 	public void run() {
+		startTime = System.currentTimeMillis();
 		for(int i = 0; i < rows*cols; i++) {
 				layout[i] = -1;
 		} 
@@ -45,11 +50,10 @@ public class OLAGreedyAlgorithm {
 				System.out.print(" 50%");
 			if(connectionsMade == (3*rows*cols/4))
 				System.out.print(" 75%");
-
 		}
 
 		OLAGraph newGraph = new OLAGraph(rows, cols, layout, connectionMatrix);
-		System.out.println("\nGreedy algorithm found this graph:\n" + newGraph.toString() + "\n");
+		System.out.println("\nGreedy algorithm found this graph:\n" + newGraph.toString() + "\n in " + (System.currentTimeMillis() - startTime) + "ms" + " fitness evals/expected " + fitnessEvals + "/" + totalFitnessEvals);
 	}
 
 	public  int findMaxConnectedEdge() {
@@ -101,6 +105,10 @@ public class OLAGreedyAlgorithm {
 					minxyPlacement = i;
 				}
 				layout[i] = -1;
+				fitnessEvals++;
+				if(fitnessEvals == totalFitnessEvals/10) {
+					System.out.print(" 10% fits " + (System.currentTimeMillis() -startTime) + "ms");
+				}
 			}
 		}
 		return minxyPlacement;

@@ -67,7 +67,7 @@ public class OLAAlgorithmGenerator {
 		ArrayList<Thread> algorithmThreads = new ArrayList<Thread>();
 
 		Scanner userInput = new Scanner(System.in);
-		boolean stopAsking = true;
+		boolean stopAsking = false;
 		int[][] connectionMatrix;
 		int rows;
 		int cols;
@@ -102,9 +102,22 @@ public class OLAAlgorithmGenerator {
 				algorithmThreads.add(bruteForceThread);
 			}
 		}
-		System.out.println("Running greedy algorithm, may take a minute");
-		OLAGreedyAlgorithm greedyAlgorithm = new OLAGreedyAlgorithm(rows, cols, connectionMatrix);
-		greedyAlgorithm.run();
+
+		boolean runGreedy = true;
+		if(rows * cols > 100) {
+			System.out.print("Run greedy algorithm? (y/n): ");
+			String runGreedyInput = userInput.next();
+			if(!runGreedyInput.equalsIgnoreCase("y"))
+				runGreedy = false;
+		}
+		if(runGreedy) {
+			//n = 400 ~30 sec
+			//n = 625 ~2.5mins
+			//n = 900 ~9 mins
+			System.out.println("Running greedy algorithm, may take a minute");
+			OLAGreedyAlgorithm greedyAlgorithm = new OLAGreedyAlgorithm(rows, cols, connectionMatrix);
+			greedyAlgorithm.run();
+		}
 
 		while(!stopAsking) {
 			System.out.println("Type \"g\" for a simple genetic algorithm.");
