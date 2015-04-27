@@ -28,7 +28,7 @@ public class HillClimbing{
 	public void runHillClimb() {
 		OLAGraph initialSolution = generateSolution(rows, cols, connectionMatrix);
 		OLAGraph solutionN = initialSolution;
-		int count = 0;
+		int perturbationCount = 0;
 		int minFitness = initialSolution.getFitness();
 		String tag = name + ", ";
 		if(perturbationFunction == 0)
@@ -42,25 +42,29 @@ public class HillClimbing{
 		ArrayList<Integer> fitnessesOccurances = new ArrayList<Integer>();
 		fitnesses.add(minFitness);
 		fitnessesOccurances.add(0);
-		while(count != maxIterations && (System.currentTimeMillis() - startTime) < maxTimeMs) {
+
+		while(perturbationCount != maxIterations && (System.currentTimeMillis() - startTime) < maxTimeMs) {
 			OLAGraph newSolution;
+			//perturb
 			if(perturbationFunction == 0)
 				newSolution = pairwiseExchange(solutionN);
 			else
 				newSolution = cycleLength3(solutionN);
+			//choose only better solutions
 			if(newSolution.getFitness() < solutionN.getFitness()) {
 				solutionN = newSolution;
 				minFitness = solutionN.getFitness();
 				fitnesses.add(minFitness);
-				fitnessesOccurances.add(count);
-				System.out.println(name + " fitness " + solutionN.getFitness());
+				fitnessesOccurances.add(perturbationCount);
+				System.out.println(name + " pertn count " + perturbationCount + " fitness " + solutionN.getFitness());
 			}
-			count++;
+			perturbationCount++;
 		}
 
+		//save logged data
 		try {
 			PrintWriter writer = new PrintWriter(tag+System.currentTimeMillis()+".ola", "UTF-8");
-			writer.println("finished in " + (System.currentTimeMillis() - startTime) + "ms and " + count + " iterations.");
+			writer.println("finished in " + (System.currentTimeMillis() - startTime) + "ms and " + perturbationCount + " iterations.");
 			writer.println("resulting layout " + solutionN.toString());
 			writer.println();
 			writer.println("fitnesses");
@@ -77,6 +81,9 @@ public class HillClimbing{
 		}
 	}
 	
+	/**
+	* Swap two alleles randomly
+	*/
 	public OLAGraph pairwiseExchange(OLAGraph oldSoln) {
 		//System.out.println("before exchange\n" + oldSoln.toString());
 		int[] layout = oldSoln.copy().getLayout();
@@ -92,6 +99,9 @@ public class HillClimbing{
 		return newSoln;
 	}
 	
+	/**
+	* Choose 3 alleles randomly, swap them in a cycle
+	*/
 	public OLAGraph cycleLength3(OLAGraph oldSoln) {
 		
 		int[] layout = oldSoln.copy().getLayout();
@@ -119,11 +129,16 @@ public class HillClimbing{
 		return newSoln;
 	}
 	
+	/**
+	* Generate a random solution
+	*/
 	public OLAGraph generateSolution(int rows, int cols, int[][] connMatrix) {
 		ArrayList<Integer> availablePositions = new ArrayList<Integer>();
+		//list of 1,2,3,...n
 		for(int i = 0; i < rows * cols; i++) {
 			availablePositions.add(i);
 		}
+		//remove the next element in list and place it in an empty spot randomly
 		int[] randomLayout = new int[rows * cols];
 		for(int i = 0; i < randomLayout.length; i++) {
 			int vertexPosition = availablePositions.remove( (int)(Math.random() * availablePositions.size()) );

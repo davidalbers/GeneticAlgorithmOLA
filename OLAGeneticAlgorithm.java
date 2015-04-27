@@ -19,16 +19,13 @@ public class OLAGeneticAlgorithm {
 	private int maxIterations;
 	private int maxTimeMs;
 	private String name;
-	private boolean variableMutation = false;
-	private double vMutationStart = .01;
-	private double vMutationEnd = .05;
+
+
 	public OLAGeneticAlgorithm(int rows, int cols, int[][] connectionMatrix, int populationSize, 
 		int selectionAlg, double tournamentK, int crossAlg, double crossRate, int mutationOp, double mutationRate, int maxIterations, int maxTimeMs, String name) {
 		this.rows = rows;
 		this.cols = cols;
 		this.connectionMatrix = connectionMatrix;
-		if(populationSize % 2 == 0)
-			populationSize++;
 		this.populationSize = populationSize;
 		this.selectionAlg = selectionAlg;
 		this.tournamentK = tournamentK;
@@ -47,11 +44,14 @@ public class OLAGeneticAlgorithm {
 		int count = 0;
 		int minGeneration = 0;
 		int minFitness = 0;
-		String tag = name + ", ";
+		
+		//log new minimum fitnesses and when they occur
 		ArrayList<Integer> fitnesses = new ArrayList<Integer>();
 		ArrayList<Integer> fitnessesOccurances = new ArrayList<Integer>();
 		int[] blankLayout = new int[population.get(0).getLayout().length];
-		//OLAGraphDrawer drawer = new OLAGraphDrawer(blankLayout, contrivedMatrix, population.get(0).getRows(), population.get(0).getColumns());
+
+		//build a descriptive, readable name for this algorithm
+		String tag = name + ", ";
 		tag += "size " + population.size() + ",";
 		if(selectionAlg == 0) 
 			tag += "tour,";
@@ -61,7 +61,7 @@ public class OLAGeneticAlgorithm {
 			tag += "order1,";
 		else if(crossAlg == 1)
 			tag += "cycle ,";
-		else 
+		else
 			tag += "2point,";
 		tag += " mut " + mutationRate + ",";
 		if(mutationOp == 0)
@@ -72,37 +72,31 @@ public class OLAGeneticAlgorithm {
 		
 		long startTime = System.currentTimeMillis();
 
-		if(mutationRate < 0) {
-			mutationRate = vMutationStart;
-			variableMutation = true;
-			System.out.println("doing variableMutation");
-		}
 
+		//run the genetic algorithm
 		while(count != maxIterations && (System.currentTimeMillis() - startTime) < maxTimeMs) {
+			System.out.println(population.size() + "size");
+			//remove minimum parent - elitism
 			OLAGraph minParent = population.remove(populationMinIndex(population));
+			//determine if minimum parent is an improvement over the previous minimum
 			int newFitness = minParent.getFitness();
 			if(newFitness < minFitness || count == 0) {
-				//drawer.setLayout(minParent.getLayout());
 				fitnesses.add(newFitness);
 				fitnessesOccurances.add(count);
 				minFitness = newFitness;
 				minGeneration = count;
 				System.out.println(name + " Gen " + count + " min " + minFitness);
 			}
-			// if(count == 250) {
-			// 	System.out.println("Population before selection");
-			// 	for(int i = 0; i < population.size(); i++) {
-			// 		int[] layout = population.get(i).getLayout();
-			// 		System.out.println(Arrays.toString(layout));
-			// 	}
-			// }
 
+			//perform selection
 			ArrayList<OLAGraph> selected;
-			if(selectionAlg == 0)
+			if(selectionAlg == 0) //0 = tournament 
 				selected = performTournament(population, tournamentK);
-			else
+			else //1 = rank
 				selected = performRank(population);
 
+			
+			//move over a percentage of the selected to the group which will reproduce/crossover
 			ArrayList<OLAGraph> toCross = new ArrayList<OLAGraph>();
 			int toCrossSize = (int)(selected.size() * crossRate + .5);
 			while(toCross.size() < toCrossSize) {
@@ -110,44 +104,36 @@ public class OLAGeneticAlgorithm {
 				toCross.add(selected.remove(indexToAdd));
 			}
 
+			//"reset" the population
 			population.clear();
+			//add anyone not crossing back to the population
 			population.addAll(selected);
-			if(crossAlg == 0)
-				population.addAll(pmxCrossover(toCross));
-			else if(crossAlg == 1)
-				population.addAll(cycle(toCross));
-			else
-				population.addAll(TwoPointCrossover(toCross, toCross.get(0).getRows(), toCross.get(0).getColumns()));
-			double oldMutation = mutationRate;
-			
-			if(variableMutation) {
-				double multiplier = (double)(System.currentTimeMillis() - startTime)/maxTimeMs;
-				mutationRate += (vMutationEnd - vMutationStart)*multiplier;
-				if(count%100 == 0)
-					System.out.println("mutation gen" + count + "@" + mutationRate);
-			}
 
-			if(mutationOp == 0) {
+			//perform crossover and add crossed children to population
+			if(crossAlg == 0) //0 = order 1 crossover
+				population.addAll(order1Crossover(toCross));
+			else if(crossAlg == 1) //1 = cycle crossover
+				population.addAll(cycle(toCross));
+			else  //2 = two-point crossover
+				population.addAll(TwoPointCrossover(toCross, toCross.get(0).getRows(), toCross.get(0).getColumns()));
+
+			//perform mutation
+			if(mutationOp == 0) { //0 - pairwise exchange
 				for(int i = 0; i < (int)(population.size() * mutationRate); i++) {
 					population.add(pairwiseExchange(population.remove((int)(Math.random() * population.size()))));
 				}
 			}
-			else {
+			else { //1 - cycle of 2 
 				for(int i = 0; i < (int)(population.size() * mutationRate); i++) {
 					population.add(cycleLength3(population.remove((int)(Math.random() * population.size()))));
 				}
 			}
 
-			if(variableMutation)
-				mutationRate = vMutationStart;
-
 			population.add(minParent);
-			// if(count%1000 == 0)//|| (count < 1000 && count % 10 ==0))
-			 //  	System.out.println(tag + " gen " + count + " min " + populationMin(population) + " avg " + (int)(populationAverage(population)) + " max " + populationMax(population) + " var " + populationVariance(population));// + "min " + minFitness + " took " + (System.currentTimeMillis() - start));
 			count++;
-
 		}
 		
+		//write data to a file
 		try {
 			PrintWriter writer = new PrintWriter(tag+System.currentTimeMillis()+".ola", "UTF-8");
 			writer.println("finished in " + (System.currentTimeMillis() - startTime) + "ms and " + count + " generations. Minimum generation " + minGeneration);
@@ -167,16 +153,23 @@ public class OLAGeneticAlgorithm {
 		}
 	}
 
+	/**
+	* Generate a population randomly
+	*/
 	public ArrayList<OLAGraph> generatePopulation(int popSize, int rows, int cols, int[][] connMatrix) {
 		ArrayList<OLAGraph> population = new ArrayList<OLAGraph>();
 		while(population.size() < popSize) {
+			//make a list of available positions 1..n
 			ArrayList<Integer> availablePositions = new ArrayList<Integer>();
 			for(int i = 0; i < rows * cols; i++) {
 				availablePositions.add(i);
 			}
+			//make a random layout in which those positions are randomly placed
 			int[] randomLayout = new int[rows * cols];
 			for(int i = 0; i < randomLayout.length; i++) {
+				//remove a random available position
 				int vertexPosition = availablePositions.remove( (int)(Math.random() * availablePositions.size()) );
+				//place it 
 				randomLayout[i] = vertexPosition;
 			}
 			population.add(new OLAGraph(rows, cols, randomLayout, connMatrix));
@@ -186,11 +179,10 @@ public class OLAGeneticAlgorithm {
 
 	public ArrayList<OLAGraph> performTournament(ArrayList<OLAGraph> parentPopulation, double k) {
 		ArrayList<OLAGraph> selectedPopulation = new ArrayList<OLAGraph>();
-		int fitCount = 0;
-		int unfitCount = 0;
 		while(selectedPopulation.size() < parentPopulation.size()) {
 			int parent1 = (int)(Math.random() * parentPopulation.size());
 			int parent2 = (int)(Math.random() * parentPopulation.size());
+			//determine which parent is fittest
 			OLAGraph fittestParent;
 			OLAGraph unfitParent;
 			if(parentPopulation.get(parent1).getFitness() <= parentPopulation.get(parent2).getFitness()) {
@@ -201,23 +193,21 @@ public class OLAGeneticAlgorithm {
 				fittestParent = parentPopulation.get(parent2);
 				unfitParent = parentPopulation.get(parent1);
 			}
-			// System.out.println("\niteration" + selectedPopulation.size() + "\nfittestParent:\n" + fittestParent.toString() + 
-			//"\nLeast Fit:\n" + unfitParent.toString());
+			//select either fit or unfit based on k
 			if(Math.random() < k) {
 				selectedPopulation.add(fittestParent.copy());
-				fitCount++;
 			}
 			else {
 				selectedPopulation.add(unfitParent.copy());
-				unfitCount++;
 			}
 		}
-		// System.out.println("Added " + fitCount + " fit parents and " + unfitCount + " unfit parents");
 		return selectedPopulation;
 	}
 
 	public ArrayList<OLAGraph> performRank(ArrayList<OLAGraph> parentPopulation) {
+		//order from least to greatest
 		Collections.sort(parentPopulation);
+		//switch to greatest to least
 		Collections.reverse(parentPopulation);
 		// n(n+1)/2
 		int totalFitness = parentPopulation.size() * (parentPopulation.size()+1) / 2;
@@ -236,7 +226,12 @@ public class OLAGeneticAlgorithm {
 	public ArrayList<OLAGraph> order1Crossover(ArrayList<OLAGraph> parents) {
 		int parentIndex = 0;
 		ArrayList<OLAGraph> children = new ArrayList<OLAGraph>();
-		while(parentIndex+1 < parents.size()) {
+		while(parentIndex < parents.size()) {
+			if(parentIndex+1 == parents.size()) {
+				//only one parent remaining, just add it and stop
+				children.add(parents.get(parentIndex));
+				break;
+			}
 			OLAGraph parent1 = parents.get(parentIndex);
 			parentIndex++;
 			OLAGraph parent2 = parents.get(parentIndex);
@@ -317,117 +312,15 @@ public class OLAGeneticAlgorithm {
 		return children;
 	}
 
-	public ArrayList<OLAGraph> pmxCrossover(ArrayList<OLAGraph> parents) {
-		int parentIndex = 0;
-		// System.out.println("Parents");
-		// for(int i = 0; i < parents.size(); i++) {
-		// 	int[] layout = parents.get(i).getLayout();
-		// 	System.out.println(Arrays.toString(layout) + ", " + parents.get(i).getFitness());
-		// }
-		ArrayList<OLAGraph> children = new ArrayList<OLAGraph>();
-		while(parentIndex+1 < parents.size()) {
-			OLAGraph parent1 = parents.get(parentIndex);
-			parentIndex++;
-			OLAGraph parent2 = parents.get(parentIndex);
-			parentIndex++;
-			int[] parent1layout = parent1.getLayout();
-			int[] parent2layout = parent2.getLayout();
-
-			//pick two crossover points randomly
-			int crossoverPoint1 = (int)(Math.random() * (parent1.getLength() - 2));
-			int crossoverPoint2 = (int)(Math.random() * (parent1.getLength() - crossoverPoint1)) + crossoverPoint1;
-			int[] child1layout = new int[parent1.getLength()];
-			int[] child2layout = new int[parent2.getLength()];
-
-			// System.out.println("pmx cross points: " + crossoverPoint1 + "," + crossoverPoint2);
-			// System.out.println(Arrays.toString(parent1layout));
-			// System.out.println(Arrays.toString(parent2layout));
-
-			//set all child data to -1 to keep track of which indices have been set
-			for(int i = 0; i < child1layout.length; i++) {
-				child1layout[i] = -1;
-				child2layout[i] = -1;
-			}
-			HashMap<Integer, Integer> matches = new HashMap<Integer, Integer>();
-			//fill in the "middle" part of the children chromosomes
-			//also build map of matches
-			for(int i = crossoverPoint1; i <= crossoverPoint2; i++) {
-				child1layout[i] = parent2layout[i];
-				child2layout[i] = parent1layout[i];
-				matches.put(parent2layout[i],parent1layout[i]);
-				matches.put(parent1layout[i],parent2layout[i]);
-			}
-
-			for(int i = 0; i < child1layout.length; i++) { 
-				//child1
-				if(child1layout[i]==-1) {
-					int vertex = parent1layout[i];
-					if(matches.containsKey(vertex))
-						vertex = matches.get(vertex);
-					if(!findVertex(child1layout, vertex, child1layout.length-1))
-						child1layout[i] = vertex;
-				}
-				//child2
-				if(child2layout[i]==-1) {
-					int vertex = parent2layout[i];
-					if(matches.containsKey(vertex))
-						vertex = matches.get(vertex);
-					if(!findVertex(child2layout, vertex, child2layout.length-1))
-						child2layout[i] = vertex;
-				}
-			}
-			ArrayList<Integer> missingChild1 = new ArrayList<Integer>();
-			ArrayList<Integer> missingChild2 = new ArrayList<Integer>();
-			for(int vertex = 0; vertex < child1layout.length; vertex++) { 
-				boolean vertexFound = false;
-				for(int index= 0; index < child1layout.length; index++) {
-					if(child1layout[index] == vertex) {
-						vertexFound = true;
-						break;
-					}
-				}
-				if(!vertexFound)
-					missingChild1.add(vertex);
-			}
-			for(int vertex = 0; vertex < child2layout.length; vertex++) { 
-				boolean vertexFound = false;
-				for(int index= 0; index < child2layout.length; index++) {
-					if(child2layout[index] == vertex) {
-						vertexFound = true;
-						break;
-					}
-				}
-				if(!vertexFound)
-					missingChild2.add(vertex);
-			}
-			for(int vertex : missingChild1) {
-				for(int index = 0; index < child1layout.length; index++) {
-					if(child1layout[index] == -1){
-						child1layout[index] = vertex;
-						break;
-					}
-				}
-			}
-			for(int vertex : missingChild2) {
-				for(int index = 0; index < child2layout.length; index++) {
-					if(child2layout[index] == -1){
-						child2layout[index] = vertex;
-						break;
-					}
-				}
-			}
-			// System.out.println(Arrays.toString(child1layout));
-			// System.out.println(Arrays.toString(child2layout));
-			children.add(new OLAGraph(parent1.getRows(), parent1.getColumns(), child1layout, parent1.getConnectionMatrix()));
-			children.add(new OLAGraph(parent1.getRows(), parent1.getColumns(), child2layout, parent1.getConnectionMatrix()));
-		}
-		return children;
-	}
-
 	public ArrayList<OLAGraph> cycle(ArrayList<OLAGraph> parents) {
 		ArrayList<OLAGraph> children = new ArrayList<OLAGraph>();
 		int parentIndex = 0;
-		while(parentIndex+1 < parents.size()) {
+		while(parentIndex < parents.size()) {
+			if(parentIndex+1 == parents.size()) {
+				//only one parent remaining, just add it and stop
+				children.add(parents.get(parentIndex));
+				break;
+			}
 			OLAGraph parent1 = parents.get(parentIndex);
 			parentIndex++;
 			OLAGraph parent2 = parents.get(parentIndex);
@@ -487,7 +380,12 @@ public class OLAGeneticAlgorithm {
 	public ArrayList<OLAGraph> TwoPointCrossover(ArrayList<OLAGraph> parents, int rows, int cols) {
 		int parentIndex = 0;
 		ArrayList<OLAGraph> children = new ArrayList<OLAGraph>();
-		while(children.size() < parents.size()) {
+		while(parentIndex < parents.size()) {
+			if(parentIndex+1 == parents.size()) {
+				//only one parent remaining, just add it and stop
+				children.add(parents.get(parentIndex));
+				break;
+			}
 			int crossoverPoint1 = (int)(Math.random() * cols);
 			int crossoverPoint2 = (int)(Math.random() * (rows - crossoverPoint1)) + crossoverPoint1;
 			int[][] connectionMatrix = parents.get(0).getConnectionMatrix();

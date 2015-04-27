@@ -21,7 +21,7 @@ public class OLAGraph implements Comparable<OLAGraph> {
 
 	public int getFitness() {
 		if(fitness == -1)
-			fitness = findFitness2();
+			fitness = findFitness();
 		return fitness;
 	}
 
@@ -45,20 +45,7 @@ public class OLAGraph implements Comparable<OLAGraph> {
 		return connectionMatrix;
 	}
 
-	// private int findFitness() {
-	// 	int fitness = 0;
-	// 	int offset = 0;
-	// 	for (int vertex = 0; vertex < layout.length; vertex++) {
-	// 		for (int vertexToConnect = vertex; vertexToConnect < layout.length; vertexToConnect++) {
-	// 			int connections = connectionMatrix[vertex][vertexToConnect];
-	// 			int distance = computeDistance(layout[vertex], layout[vertexToConnect]);
-	// 			fitness += connections * distance;
-	// 		}
-	// 	}
-	// 	return fitness;
-	// }
-
-	private int findFitness2() {
+	private int findFitness() {
 		int fitness = 0;
 		for (int pos1 = 0; pos1 < layout.length; pos1++) {
 			for(int pos2 = pos1; pos2 < layout.length; pos2++) {
@@ -74,6 +61,9 @@ public class OLAGraph implements Comparable<OLAGraph> {
 		return fitness;
 	}
 
+	/**
+	* Compute the Euclidean distance between two indices in the layout array
+	*/
 	private int computeDistance(int index1, int index2) {
 		int index1X = index1 % cols;
 		int index1Y = index1 / cols;
@@ -82,6 +72,9 @@ public class OLAGraph implements Comparable<OLAGraph> {
 		return Math.abs(index2X - index1X) + Math.abs(index2Y - index1Y);
 	}
 	
+	/**
+	* Given two vertices, determine a direction vector from one vertex to another
+	*/
 	public static int[] computeDirectionVector(int index1, int index2, int cols) {
 		int index1X = index1 % cols;
 		int index1Y = index1 / cols;
@@ -90,12 +83,14 @@ public class OLAGraph implements Comparable<OLAGraph> {
 		return new int[]{(index2X - index1X), (index2Y - index1Y)};
 	}
 	
+	/**
+	* Convert index in array to 2-dimensional coordinates
+	*/
 	 public static int[] indexToCoordinates(int index, int cols) {
 	 	int indexX = index % cols;
 		int indexY = index / cols;
 		return new int[]{indexX, indexY};
 	 }
-
 
 	public String toString() {
 		String info = "Fitness: " + getFitness() + " Rows: " + rows + "Columns: " + cols + " Layout: ";
@@ -135,6 +130,9 @@ public class OLAGraph implements Comparable<OLAGraph> {
 		return new OLAGraph(rows, cols, layout, connectionMatrix);
 	}
 
+	/**
+	* Randomly generate a connection matrix
+	*/
 	public static int[][] generateConnectionMatrix(int rows, int cols, int minConnections, int maxConnections, int weightedness) {
 		int length = rows * cols;
 		int[][] generatedMatrix = new int[length][length];
@@ -164,9 +162,16 @@ public class OLAGraph implements Comparable<OLAGraph> {
 		// 2|0.774
 		// 3|0.894
 		// 4|1
-		return (int)Math.ceil( Math.pow(Math.random() , weightedness) * (max - min + 1) - 1);
+		int rand =  (int)Math.ceil( Math.pow(Math.random(), weightedness) * (max - min + 1) - 1);
+		if(rand == -1) //account for the fact that numbers like -9.99e-19 == -1 because of precision
+			rand = 0;
+		return rand;
 	}
 
+	/**
+	* Make an array where arr[i] = j
+	* where i is the vertex and j is its placement
+	*/
 	public int[] generateReverseLookup() {
 		int[] reverse = new int[layout.length];
 		for(int i = 0; i < reverse.length; i++) {
@@ -175,6 +180,9 @@ public class OLAGraph implements Comparable<OLAGraph> {
 		return reverse;
 	}
 
+	/**
+	* Compare graphs based on fitness 
+	*/
 	public int compareTo(OLAGraph toCompare) {
 		if(getFitness() < toCompare.getFitness()) 
 			return -1;

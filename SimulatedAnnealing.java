@@ -36,9 +36,11 @@ public class SimulatedAnnealing {
 		double temperature = initialTemperature;
 		double iterations = initialIterations;
 		int count = 0;
+		int perturbationCount = 0;
 		int leastFitParentCount = 0;
 		int fitParentCount = 0;
 		int minFitness = initialSolution.getFitness();
+		//Variables used for logging important data
 		ArrayList<Integer> fitnesses = new ArrayList<Integer>();
 		ArrayList<Integer> fitnessesOccurances = new ArrayList<Integer>();
 		fitnesses.add(minFitness);
@@ -50,35 +52,42 @@ public class SimulatedAnnealing {
 			tag += "cycle";
 		long startTime = System.currentTimeMillis();
 		System.out.println(name + ", initial fitness " + initialSolution.getFitness());
+
 		while(count != maxIterations && (System.currentTimeMillis() - startTime) < maxTimeMs) {
 			int innerLoopCount = 0;
 			while(innerLoopCount < iterations) {
 				OLAGraph newSolution;
+				//perturb
 				if(perturbationFunction == 0)
 					newSolution = pairwiseExchange(solutionN);
 				else
 					newSolution = cycleLength3(solutionN);
+				perturbationCount++;
+				//choose better solution
 				if(newSolution.getFitness() < solutionN.getFitness()) {
 					fitParentCount++;
 					solutionN = newSolution;
-				}
+				}//or choose worse solution, maybe...
 				else if (acceptLeastFitSolution(solutionN, newSolution, temperature)) {
 					solutionN = newSolution;
 					leastFitParentCount++;
 				}
 				innerLoopCount++;
 			}
+			//update alpha and beta
 			temperature = temperature * alpha; 
 			iterations = iterations * beta;
+
 			if(solutionN.getFitness() < minFitness) {
 				minFitness = solutionN.getFitness();
 				fitnesses.add(minFitness);
 				fitnessesOccurances.add(count);
-				System.out.println(name + ", temp " + temperature + " fitness " + solutionN.getFitness());
+				System.out.println(name + ", p " + perturbationCount + " f " + solutionN.getFitness() + " t " + temperature + " r " + ((double)leastFitParentCount/fitParentCount));
 			}
 			count++;
 		}
 
+		//save logged data
 		try {
 			PrintWriter writer = new PrintWriter(tag+System.currentTimeMillis()+".ola", "UTF-8");
 			writer.println("finished in " + (System.currentTimeMillis() - startTime) + "ms and " + count + " iterations.");
@@ -94,10 +103,13 @@ public class SimulatedAnnealing {
 			writer.close();
 		}
 		catch(Exception ex) {
-				System.out.println("error writing output.");
+				System.out.println("error writing log for SA called: " + name + ".");
 		}
 	}
 	
+	/**
+	* Randomly swap 2 alleles
+	*/
 	public OLAGraph pairwiseExchange(OLAGraph oldSoln) {
 		//System.out.println("before exchange\n" + oldSoln.toString());
 		int[] layout = oldSoln.copy().getLayout();
@@ -113,6 +125,9 @@ public class SimulatedAnnealing {
 		return newSoln;
 	}
 	
+	/**
+	* Choose 3 alleles, swap them in a cycle randomly
+	*/
 	public OLAGraph cycleLength3(OLAGraph oldSoln) {
 		
 		int[] layout = oldSoln.copy().getLayout();
@@ -140,10 +155,16 @@ public class SimulatedAnnealing {
 		return newSoln;
 	}
 	
+	/**
+	* Determine whether or not to accept a worse solution
+	*/
 	public boolean acceptLeastFitSolution(OLAGraph oldSoln, OLAGraph newSoln, double temp) {
 		return Math.random() <  Math.exp((oldSoln.getFitness() - newSoln.getFitness())/temp);
 	}
 	
+	/**
+	* Generate a random solution
+	*/
 	public OLAGraph generateSolution(int rows, int cols, int[][] connMatrix) {
 		ArrayList<Integer> availablePositions = new ArrayList<Integer>();
 		for(int i = 0; i < rows * cols; i++) {

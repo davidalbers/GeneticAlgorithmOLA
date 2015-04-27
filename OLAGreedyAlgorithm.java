@@ -9,6 +9,21 @@ public class OLAGreedyAlgorithm {
 	private int fitnessEvals = 0;
 	private int totalFitnessEvals;
 	private long startTime;
+
+// 	PPPGreedy:
+// where g is an empty graph of size mxn
+// where c is a list of vertices to place of size m*n
+// where m is a connection matrix of size m*n x m*n
+// remove vertex with maximum total connections from c
+// place maximally connected vertex in middle of g
+// while(c not empty):
+// find vertex cm in c with most connections to vertices in g
+// remove cm from c
+// try all possible placements for cm 
+// choose the optimal placement using fitness function with m
+// place cm in optimal placement
+// done.
+// For n comp
 	public OLAGreedyAlgorithm(int rows, int cols, int[][] connectionMatrix) {
 		this.connectionMatrix = connectionMatrix;
 		this.rows = rows;
@@ -27,23 +42,26 @@ public class OLAGreedyAlgorithm {
 		System.out.print("Greedy algorithm percent: 0%");
 		while(connectionsMade != rows * cols) {
 			if(firstPlacement) {
-				int maxEdge = findMaxConnectedEdge();
+				//find maximally connected edge and place it in middle
+				int maxEdge = findMaxConnectedVertex();
 				int row = rows / 2;
 				int col = cols /2;
 				int placement = row * cols + col;
 				layout[placement] = maxEdge;
 				firstPlacement = false;
 				addedConnections[maxEdge] = true;
-				//System.out.println("adding " + maxEdge + " to pos " + placement);
 			}
 			else {
-				int maxEdge = findNextMaxConnectedEdge();
-				int minPlacement = findOptimalPlacementForEdge(maxEdge);
+				//vertex with most connections to vertices which have already been placed
+				int maxEdge = findNextMaxConnectedVertex();
+				//find the optimal placement for this vertex
+				int minPlacement = findOptimalPlacementForVertex(maxEdge);
+				//place the vertex
 				layout[minPlacement]=maxEdge;
-				//System.out.println("adding " + maxEdge + " to pos " + minPlacement);
 				addedConnections[maxEdge] = true;
 			}
 			connectionsMade++;
+			//print progess updates
 			if(connectionsMade == (rows*cols/4))
 				System.out.print(" 25%");
 			if(connectionsMade == (rows*cols/2))
@@ -53,12 +71,13 @@ public class OLAGreedyAlgorithm {
 		}
 
 		OLAGraph newGraph = new OLAGraph(rows, cols, layout, connectionMatrix);
-		System.out.println("\nGreedy algorithm found this graph:\n" + newGraph.toString() + "\n in " + (System.currentTimeMillis() - startTime) + "ms" + " fitness evals/expected " + fitnessEvals + "/" + totalFitnessEvals);
+		System.out.println("\nGreedy algorithm found this graph:\n" + newGraph.toString() + "\n in " + (System.currentTimeMillis() - startTime) + "ms");
 	}
 
-	public  int findMaxConnectedEdge() {
+	public  int findMaxConnectedVertex() {
 		int maxConnections = -1;
 		int maxEdge = 0;
+		//iterate overconnection matrix and find max
 		for(int edge = 0; edge < rows*cols; edge++) {
 			int sum = 0;
 			for(int j = 0; j< rows*cols; j++) {
@@ -72,11 +91,13 @@ public class OLAGreedyAlgorithm {
 		return maxEdge; 
 	}
 
-	public  int findNextMaxConnectedEdge() {
+	public  int findNextMaxConnectedVertex() {
 		int maxEdge = 0;
 		int maxConnections = -1;
+		//iterate over connections
 		for(int edge = 0; edge < rows*cols; edge++) {
 			int sum = 0;
+			//if connection has not been added find how many connections is has to vertices that have been added
 			if(!addedConnections[edge]) {
 				for(int existingEdge = 0; existingEdge < rows*cols; existingEdge++){
 					if(addedConnections[existingEdge]) {
@@ -92,10 +113,10 @@ public class OLAGreedyAlgorithm {
 		return maxEdge;
 	}
 
-	public  int findOptimalPlacementForEdge(int edgeToPlace) {
+	public  int findOptimalPlacementForVertex(int edgeToPlace) {
 		int minxyPlacement = 0;
 		int minFitness = -1;
-
+		//try all possible placements for the new vertex and choose the one which has the lowest fitness
 		for(int i = 0; i < rows*cols; i++) {
 			if(layout[i] == -1) {
 				layout[i] = edgeToPlace;
@@ -106,9 +127,6 @@ public class OLAGreedyAlgorithm {
 				}
 				layout[i] = -1;
 				fitnessEvals++;
-				if(fitnessEvals == totalFitnessEvals/10) {
-					System.out.print(" 10% fits " + (System.currentTimeMillis() -startTime) + "ms");
-				}
 			}
 		}
 		return minxyPlacement;
